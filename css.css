@@ -1,0 +1,28 @@
+body{
+	margin:0 auto
+}
+[onclick]{cursor:pointer}
+#root {
+	text-align:center;
+}
+.nota {
+	font-family:monospace;
+	margin-bottom:10px;
+}
+#corba {
+	width:350px;
+	height:150px;
+	font-family:monospace;
+}
+.botonera button {
+	padding:1em 6em;
+	margin:auto;
+}
+
+#contracte table th[colspan]
+{
+	background:#ddd;
+}
+
+table{border-collapse:collapse;margin:auto}
+th,td{border:1px solid #ccc;padding:0.3em}
