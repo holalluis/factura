@@ -2,13 +2,19 @@ body{
 	margin:0 auto;
 	overflow-y:scroll;
 	font-size:13px;
+	font-family:verdana;
 }
 
 h1{
-	background:#abc;
+	background:#def;
 	margin-top:0;
 	padding:0.5em;
+	font-size:22px;
+	font-weight:normal;
+	border-bottom:1px solid;
 }
+
+th{font-weight:normal}
 
 [onclick]{cursor:pointer}
 #root {
@@ -29,23 +35,34 @@ h1{
 }
 #titol {
 	margin-top:5px;
-	font-weight:bold;
-	background:#abc;
+	font-size:18px;
+	background:#def;
 	padding:0.5em;
+	border-top:1px solid;
+	border-bottom:1px solid;
 }
 #resultat {
 	font-size:20px;
 	padding:0.5em;
-	background:orange;
-	margin-bottom:5px;
+	background:rgb(248,242,216);
+	border-bottom:1px solid ;
 }
 #contracte {
 	margin-bottom:100px;
 }
 #contracte table th[colspan]
 {
-	background:#ddd;
+	background:#eaeaea;
+	padding:0.7em;
 }
+#detall{
+	padding:1em;
+	text-align:left;
+	padding-left:5em;
+	padding-right:5em;
+	border-bottom:1px solid ;
+}
+#taula{margin-top:5px}
 
 table{border-collapse:collapse;margin:auto}
 th,td{border:1px solid #ccc;padding:0.3em}

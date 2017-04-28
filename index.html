@@ -2,10 +2,11 @@
 	<meta charset=utf-8>
 	<meta name=viewport content="width=device-width">
 	<link rel=stylesheet href=css.css>
-	<title>Calcula factura Tarifa 3.1A (Espanya)</title>
+	<title>Calcula factura elèctrica: Tarifa 3.1A (Espanya)</title>
 	<script src=tou.js></script>
 	<script src=festius.js></script>
 	<script src=utils.js></script>
+	<script src=cookies.js></script>
 	<script>
 		function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 		{
@@ -227,7 +228,7 @@
 			log("  Compl. reactiva      [eur]: "+compl_reactiva[fi]);
 			log("  Total sense IVA      [eur]: "+total_sense_iva[fi]+"\n");
 			log("  TOTAL + IVA          [eur]: "+total_amb_iva[fi]+"\n");
-			log("falta el coste interrumpibilidad")
+			log("[TODO] falta el coste interrumpibilidad")
 
 			//empaquetar info d'interès en un objecte de return
 			var resultat = {
@@ -251,7 +252,7 @@
 			log("Processant "+linies.length+" línies al camp de text..."); //mostra numero de línies de la corba
 
 			//comprova que no estigui buit
-			if(linies.length==0) { log("[ERROR] camp de text buit"); return; }
+			if(linies.length==0) { err("[ERROR] camp de text buit"); return; }
 
 			/*DETECTA DATA INICIAL, TIME INTERVAL I NOMBRE DE TIMESTEPS*/
 			//format linia ['01/01/2017', '00:00', '50', 'kW']
@@ -291,14 +292,14 @@
 			*/
 			var hores=(data_final-data_inici)/36e5; //passar de milisegons a hores
 			//comprova si el nombre de dades coincideix
-			if([672,696,744,720,743,745].indexOf(hores)==-1) { log("[ERROR] Nombre d'hores incorrecte ("+hores+")"); return; }
+			if([672,696,744,720,743,745].indexOf(hores)==-1) { err("[ERROR] Nombre d'hores incorrecte ("+hores+")"); return; }
 			else { log("[OK] Nombre d'hores possible ("+hores+")"); }
 
 			//warning si no coincideixen
 			if(hores!=linies.length)
 			{
-				log("[ERROR]: Hi hauria d'haver "+hores+" hores ("+hores/24+" dies)");
-				log("[ERROR]: Hi ha "+linies.length+" hores");
+				err("[ERROR]: Hi hauria d'haver "+hores+" hores ("+hores/24+" dies)");
+				err("[ERROR]: Hi ha "+linies.length+" hores");
 				return;
 			}
 			else { log("[OK] Les hores coincideixen amb el nombre de línies ("+hores+")"); }
@@ -333,7 +334,7 @@
 				data.setUTCHours(data.getUTCHours()+i)
 				if(data.toUTCString()!=Dates[i].toUTCString())
 				{
-					log('[ERROR] Data incorrecta');
+					err('[ERROR] Data incorrecta');
 					log(data);
 					log(Dates[i]);
 					return
@@ -377,21 +378,112 @@
 			}
 			log("[OK] S'han assignat els períodes tarifaris a cada hora del mes ("+Dates.map(function(d){return d.periode}).filter(function(p){return p!=0}).length+")");
 
-			//calcula la tarifa TODO
-			var potCon=[500,500,500];//kW
-			var preus_potencia=[5,5,5];//eur
-			var preus_energia=[0.5,0.5,0.5];//eur
-			var resultat=tarifa3(Dates,potCon,preus_potencia,preus_energia);
-			log(resultat)
+			//llegeix inputs usuari
+			var potCon=[
+				parseFloat(document.querySelector('#potCon_P1').value),
+				parseFloat(document.querySelector('#potCon_P2').value),
+				parseFloat(document.querySelector('#potCon_P3').value),
+			];
+			var preus_potencia=[
+				parseFloat(document.querySelector('#preus_potencia_P1').value),
+				parseFloat(document.querySelector('#preus_potencia_P2').value),
+				parseFloat(document.querySelector('#preus_potencia_P3').value),
+			];
+			var preus_energia=[
+				parseFloat(document.querySelector('#preus_energia_P1').value),
+				parseFloat(document.querySelector('#preus_energia_P2').value),
+				parseFloat(document.querySelector('#preus_energia_P3').value),
+			];
+			var impostos=[
+				0,
+				parseFloat(document.querySelector('#tax_im2').value),
+				parseFloat(document.querySelector('#tax_alq').value),
+				parseFloat(document.querySelector('#tax_iva').value),
+			];
 
-			document.querySelector('#resultat #total_iva').innerHTML=resultat.total.toFixed(2)
+			//tarifa3
+			var resultat=tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos);
 
-			//mostra taula de preus
+			//VIEW
+			//mostra container
 			document.querySelector('#contracte').style.display='block'
 
+			//posa al view
+			document.querySelector('#resultat #total_iva').innerHTML=resultat.total.toFixed(2)
+
+			//Desglossa resultat al detall i posa al view
+			var detall=document.querySelector('#detall');
+			detall.innerHTML="<u>Detall factura</u>";//reset detall
+			var ul=document.createElement('ul');
+			detall.appendChild(ul);
+			for(var camp in resultat)
+			{
+				var li=document.createElement('li');
+				ul.appendChild(li);
+				li.innerHTML=camp+": "+resultat[camp];
+			}
+
+			//dies festius
+			var tr_dies_festius=document.querySelector('#dies_festius');
+			//elimina els que hi ha
+			var trs_dies_festius=document.querySelectorAll('#taula tr.dia_festiu');
+			for(var i=0;i<trs_dies_festius.length;i++)
+			{
+				trs_dies_festius[i].style.display='none'//amaga
+			}
+
+			detecta_dies_festius(Dates).forEach(function(festiu){
+				//nova fila
+				var tr=document.createElement('tr');
+				tr.classList.add('dia_festiu');
+				tr.setAttribute('mes',festiu.mes);
+				tr.setAttribute('dia',festiu.dia);
+				tr_dies_festius.parentNode.insertBefore(tr,tr_dies_festius.nextSibling);
+				tr.innerHTML="<td>"+festiu.dia+"/"+festiu.mes+"<td>"+festiu.nom
+				var td=document.createElement('td');
+				tr.appendChild(td);
+				td.colSpan=2;
+				td.innerHTML="menu per fer <select><option>No<option>Si</select>" //TODO
+			})
+		}
+
+		function detecta_dies_festius(Dates) //Dates: array objectes Date
+		{
+			dies_festius=[];//array objectes
+			for(var i=0;i<Dates.length;i+=24)
+			{
+				var data=Dates[i];
+				Festius.forEach(function(festiu){ //festiu{dia,mes,nom}
+					if(data.getUTCDate()==festiu.dia)
+					{
+						if(data.getUTCMonth()==(festiu.mes-1))
+						{
+							dies_festius.push(festiu);
+						}
+					}
+				});
+			}
+			return dies_festius;
+		}
+
+		function init()
+		{
+			/*
+				SETEJA VALORS DE COOKIES:
+					potencia contractada
+					preu potencia
+					preu energia
+					lloguer
+					impost electric
+					IVA
+			*/
+			//TODO
+			
+			//processa la corba predefinida
+			//processa_corba(document.querySelector('#corba').value);
 		}
 	</script>
-</head><body>
+</head><body onload="init()">
 
 <div id=root>
 <h1 onclick=window.location.reload() title="Torna a començar"><script>document.write(document.title)</script></h1>
@@ -1174,61 +1266,48 @@
 </textarea>
 
 <div class=botonera>
-	<button id=btn_neteja   onclick=document.querySelector('#corba').value=''>Clear</button>
-	<button id=btn_processa onclick=processa_corba(document.querySelector('#corba').value)>Calcula factura</button>
+	<button id=btn_neteja   onclick="document.querySelector('#corba').value=''">Clear</button>
+	<button id=btn_processa onclick="processa_corba(document.querySelector('#corba').value)">Calcula factura</button>
 </div>
 
-<div id=titol></div><!--mes detectat-->
-
-<div id=contracte style="display:
-none">
-
+<div id=contracte style="display:none">
+	<div id=titol></div><!--mes detectat-->
 	<div id=resultat>
 		<div>
 			Total + IVA: <span id=total_iva>0</span> euros
-			<button id=btn_detall onclick="veureDetall()">Veure detallat</button>
+			<button id=btn_detall onclick="veureDetall()">...</button>
 			<script>
-				function veureDetall()
-				{
+				function veureDetall(){
 					var d=document.querySelector('#detall');
-					d.style.display=d.style.display=='none'?"":"none";
+					d.style.display=d.style.display==''?'none':'';
 				}
 			</script>
 		</div>
 	</div>
-	<div id=detall style=display:none>
-		detall factura en construcció
-	</div>
+	<div id=detall style=display:none></div>
 
-	<table>
+	<table id=taula>
 		<!--linkar amb cookies mes endavant (amb javascript)-->
 		<tr><th colspan=4>Dades contracte
 		<tr><th>Període<th>P1 punta<th>P2 llano<th>P3 valle
 		<tr><th>Potència contractada
-			<td><input placeholder="kW" value=500>
-			<td><input placeholder="kW" value=500>
-			<td><input placeholder="kW" value=500>
+			<td><input placeholder="kW" value=500 id=potCon_P1>
+			<td><input placeholder="kW" value=500 id=potCon_P2>
+			<td><input placeholder="kW" value=500 id=potCon_P3>
 		<tr><th>Preu potència       
-			<td><input placeholder="eur/kW" value=5>
-			<td><input placeholder="eur/kW" value=5>
-			<td><input placeholder="eur/kW" value=5>
+			<td><input placeholder="eur/kW" value=5 id=preus_potencia_P1>
+			<td><input placeholder="eur/kW" value=5 id=preus_potencia_P2>
+			<td><input placeholder="eur/kW" value=5 id=preus_potencia_P3>
 		<tr><th>Preu energia
-			<td><input placeholder="eur/kWh" value=0.5>
-			<td><input placeholder="eur/kWh" value=0.5>
-			<td><input placeholder="eur/kWh" value=0.5>
+			<td><input placeholder="eur/kWh" value=0.5 id=preus_energia_P1>
+			<td><input placeholder="eur/kWh" value=0.5 id=preus_energia_P2>
+			<td><input placeholder="eur/kWh" value=0.5 id=preus_energia_P3>
 		<tr><th colspan=4>Impostos
-		<tr><th>Lloguer (eur)  <td colspan=3><input placeholder=eur value=50>
-		<tr><th>Impost elèctric<td colspan=3><input value=0.05113>
-		<tr><th>IVA            <td colspan=3><input value=0.21>
-		<tr><th colspan=4>Dies festius
-		<script>
-			Festius.forEach(function(festiu){
-				document.write("<tr mes="+festiu.mes+" dia="+festiu.dia+"><td>"+festiu.dia+"/"+festiu.mes+"<td>"+festiu.nom);
-				document.write("<td colspan=2><select><option>Si<option selected>No</select> <br>")
-			});
-		</script>
-		</tr>
-		<tr><th colspan=4>Canvi d'hora (horari estiu)
+		<tr><th>Lloguer (eur)  <td colspan=3><input placeholder=eur value=50 id=tax_alq>
+		<tr><th>Impost elèctric<td colspan=3><input value=0.05113 id=tax_im2>
+		<tr><th>IVA            <td colspan=3><input value=0.21 id=tax_iva>
+		<tr id=dies_festius><th colspan=4>Possibles dies festius
+		<tr><th colspan=4>Canvi d'hora (només març o octubre)
 		<tr>
 			<th>Inici
 			<td>
