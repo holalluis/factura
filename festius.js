@@ -1,13 +1,19 @@
-var Festius = {
-	"01/01" : "Any nou",
-	"06/01" : "Reis",
-	"19/03" : "Sant Josep",
-	"14/04" : "Divendres Sant (variable)",
-	"01/05" : "Dia del treball",
-	"15/08" : "Assumpció Verge",
-	"12/10" : "Festa nacional espanya",
-	"01/11" : "Tots Sants",
-	"06/12" : "Consitució",
-	"08/12" : "Immaculada Concepció",
-	"25/12" : "Nadal",
-}
+/*array de dies festius*/
+
+// { mes <int>, dia <int>, activat <bool>, nom <string> }
+
+// el camp activat és modificat per l'usuari
+
+var Festius = [
+	{ mes:01, dia:01, activat:0, nom: "Any nou" },
+	{ mes:01, dia:06, activat:0, nom: "Reis", },
+	{ mes:03, dia:19, activat:0, nom: "Sant Josep", },
+	{ mes:04, dia:14, activat:0, nom: "Divendres Sant (variable)", },
+	{ mes:05, dia:01, activat:0, nom: "Dia del treball", },
+	{ mes:08, dia:15, activat:0, nom: "Assumpció Verge", },
+	{ mes:10, dia:12, activat:0, nom: "Festa nacional espanya", },
+	{ mes:11, dia:01, activat:0, nom: "Tots Sants", },
+	{ mes:12, dia:06, activat:0, nom: "Consitució", },
+	{ mes:12, dia:08, activat:0, nom: "Immaculada Concepció", },
+	{ mes:12, dia:25, activat:0, nom: "Nadal", },
+]

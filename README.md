@@ -1,5 +1,6 @@
 # Factura tarifa 3.1A
 
-Mini app per calcular factura a partir de les dades de corba horària
+Calcula la factura a partir de la corba horària
+(dada de potència consumida cada hora en kW)
 
 ## en desenvolupament

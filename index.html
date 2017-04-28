@@ -1,33 +1,265 @@
-<!doctype html>
-<html><head>
+<!doctype html><html><head>
 	<meta charset=utf-8>
-	<meta name="viewport" content="width=device-width">
+	<meta name=viewport content="width=device-width">
 	<link rel=stylesheet href=css.css>
 	<title>Calcula factura Tarifa 3.1A (Espanya)</title>
-	<script src=tarifa_31A.js></script>
+	<script src=tou.js></script>
 	<script src=festius.js></script>
 	<script src=utils.js></script>
 	<script>
-		function processa_corba(valors) 
+		function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 		{
-			//separa la corba per line breaks i filtra linies buides
-			var linies=valors.split('\n').filter(function(n){return (n!="" && n!=" " && n!="	")});
+			potCon = potCon                 || [500,500,500];
+			preus_potencia = preus_potencia || [5,5,5];
+			preus_energia = preus_energia   || [0.5,0.5,0.5];
+			impostos = impostos             || [0,0.5,50,0.21];
+			//potencia contractada i preus i valors inicials
+			var potConP1=potCon[0];
+			var potConP2=potCon[1];
+			var potConP3=potCon[2];
+			var eurKWP1 =preus_potencia[0];
+			var eurKWP2 =preus_potencia[1];
+			var eurKWP3 =preus_potencia[2];
+			var eurKWhP1=preus_energia[0];
+			var eurKWhP2=preus_energia[1];
+			var eurKWhP3=preus_energia[2];
+			var tax_im1 =impostos[0];
+			var tax_im2 =impostos[1];
+			var tax_alq =impostos[2];
+			var tax_iva =impostos[3];
 
-			log("Processant "+linies.length+" línies al camp de text..."); //mostra numero de línies de la corba
+			//desempaqueta la variable Dates en "temps", "blocs" i "potencia"
+			var temps=Dates;
+			var blocs=Dates.map(function(d){return parseFloat(d.periode);});
+			var poten=Dates.map(function(d){return parseFloat(d.potKW);});
+			/*CALCULAREM 3 GRANS COSES: "TERM_POTENCIA" + "TERM_ENERGIA" + "COMPL_REACTIVA"*/
 
-			if(linies.length==0)
-			{
-				log("[ERROR] camp de text buit");
-				return
+			//1.TERM POTENCIA
+			//potConP{1,2,3} potencia contractada kW
+			var potCon=new Array();potCon[1]=potConP1;potCon[2]=potConP2;potCon[3]=potConP3;
+			//arrays buits per calcular maxims per cada periode
+			var maxim=new Array();maxim[1]=new Array();maxim[2]=new Array();maxim[3]=new Array();
+			//emplena els arrays de zeros per començar
+			for(var i=0;i<temps.length;i++){
+				maxim[1][i]=0;
+				maxim[2][i]=0;
+				maxim[3][i]=0;
 			}
 
+			//calcula maxims
+			for(var i=0;i<temps.length;i++) {
+				//primer abans de res posa el valor anterior maxim trobat
+				maxim[1][i]=Math.max.apply(null,maxim[1]);
+				maxim[2][i]=Math.max.apply(null,maxim[2]);
+				maxim[3][i]=Math.max.apply(null,maxim[3]);
+				//actualitza el valor del maxim si la potencia actual es mes gran 
+				var b=blocs[i];
+				//sobreescriu el maxim pel bloc actual
+				if(poten[i]>maxim[b][i]) maxim[b][i]=poten[i];
+			}
+
+			//preus potencia eurkW
+			var preus=new Array();preus[1]=eurKWP1;preus[2]=eurKWP2;preus[3]=eurKWP3;
+			//calculem el cost (eur de la potencia en cada instant)
+			var term_poten=new Array();
+			//recorrem el temps
+			for(var i=0; i<temps.length; i++) {
+				//inicialitza a 0
+				term_poten[i] = 0;
+
+				//recorre tots els blocs tarifaris
+				for(var j=1; j<4; j++)
+				{
+					//si la potencia demandada es mes petita al 85% de la contractada...
+					if(maxim[j][i] <= 0.85*potCon[j])
+					{
+						//cobra el 85% de la contractada 
+						term_poten[i] += 0.85*potCon[j]*preus[j]; 
+					}
+					else 
+					{
+						//si la potencia demandada es mes petita al 105% de la contractada...
+						if(maxim[j][i] <= 1.05*potCon[j])
+						{
+							//cobra la pot max demandada
+							term_poten[i] += maxim[j][i]*preus[j];
+						}
+						else 
+						{
+							//si la potencia demandada es mes gran al 105% de la potÃ¨ncia contractada,
+							//cobra la maxima registrada + dues vegades la diferÃ¨ncia amb el 105% de la contractada
+							var dif = maxim[j][i]-1.05*potCon[j];		// diferÃ¨ncia
+							var pr = parseFloat(maxim[j][i])+parseFloat(2)*dif; 	// potÃ¨ncia registrada
+							term_poten[i] += parseFloat(preus[j])*parseFloat(pr);
+						}
+					}
+				}
+			}
+
+			//2. TERM ENERGIA
+			//calculem energia (kWh) consumida a partir de potencia (kW)
+
+			//energia consumida a cada bloc (1,2,3)
+			var energia=new Array(); energia[1] = new Array(); energia[2] = new Array(); energia[3] = new Array();
+
+			//omplim de zeros
+			for(var i=0; i<temps.length; i++)
+			{
+				energia[1][i]=0;
+				energia[2][i]=0;
+				energia[3][i]=0;
+			}
+
+			//valor inicial (energia consumida la primera hora
+			energia[blocs[0]][0] = 0 + poten[0]*1;;
+
+			//recorrem el temps i anem acumulant l'energia consumida multiplicant la potÃ¨ncia pel timestep en hores (~integral)
+			for(var i=1;i<temps.length;i++)
+			{
+				//primer posa l'energia i igual a l'anterior
+				energia[1][i]=energia[1][i-1];
+				energia[2][i]=energia[2][i-1];
+				energia[3][i]=energia[3][i-1];
+
+				//actualitza nomes pel bloc actual
+				var b=blocs[i];
+				//integral. 1 és una hora explicitament escrit
+				energia[b][i]=energia[b][i-1]+poten[i]*1;
+			}
+
+			//Ara calculem el cost (eur de l'energia consumida)
+			var preus = new Array(); //per p1,p2 i p3
+			preus[1]=eurKWhP1; preus[2]=eurKWhP2; preus[3]=eurKWhP3;
+
+			//ara anem sumant dia a dia el que costa l'energia activa (eur)
+			var term_energ = new Array();
+			term_energ[0]=0+energia[blocs[0]][0]*preus[blocs[0]];     //valor inicial
+			//recorrem el temps
+			for(i=1;i<temps.length;i++)
+			{
+				term_energ[i]=term_energ[i-1];
+				term_energ[i]+=(energia[1][i] - energia[1][i-1]) * preus[1];
+				term_energ[i]+=(energia[2][i] - energia[2][i-1]) * preus[2];
+				term_energ[i]+=(energia[3][i] - energia[3][i-1]) * preus[3];
+			}
+
+			//3. COMPL REACTIVA TODO
+			//energia reactiva (kVArh)
+			var energia_reactiva = new Array(); //no entrat
+
+			//energia reactiva per cada bloc (1,2) (el 3 no es cobra)
+			energia_reactiva[1] = new Array();
+			energia_reactiva[2] = new Array();
+
+			//incialitza tot a zero: esperar tenir dades
+			for (var i=0; i<temps.length; i++)
+			{
+				energia_reactiva[1][i] = 0;
+				energia_reactiva[2][i] = 0;
+			}
+
+			//euros d'energia reactiva
+			var compl_reactiva = new Array();
+
+			//Variables necessÃ ries per calcular l'energia reactiva
+			var exces  = new Array(); exces[1]  = new Array(); exces[2]  = new Array();
+			var cosPhi = new Array(); cosPhi[1] = new Array(); cosPhi[2] = new Array();
+			var preu   = new Array(); preu[1]   = new Array(); preu[2]   = new Array();
+
+			for(var i=0; i<temps.length; i++)
+			{
+				for(var b=1; b<3; b++)
+				{
+					//calcula exces
+					if (energia_reactiva[b][i] > 0.33 * energia[b][i] )
+						exces[b][i] = energia_reactiva[b][i] - 0.33*energia[b][i];		
+					else
+						exces[b][i] = 0;
+
+					//calcula el cosinus de phi
+					cosPhi[b][i]=Math.cos(Math.atan(energia_reactiva[b][i]/energia[b][i]));
+
+					//calcula el preu de l'energia reactiva en funcio de cosinus de phi
+					if(cosPhi[b][i] >= 0.95)
+						preu[b][i] = 0;
+					else if(cosPhi[b][i] >= 0.80)
+						preu[b][i] = 0.041554;
+					else
+						preu[b][i] = 0.062332;
+				}
+			}
+
+			//calcula el cost de l'energia reactiva
+			compl_reactiva[0] = exces[1][0] * preu[1][0] + exces[2][0] * preu[2][0]; //valor inicial
+			for(var i=1; i<temps.length; i++)
+			{
+				compl_reactiva[i] = compl_reactiva[i-1];
+				compl_reactiva[i] += exces[1][i] * preu[1][i];
+				compl_reactiva[i] += exces[2][i] * preu[2][i];
+			}
+
+			//5. COSTOS TOTALS
+			//suma dels costos (eur energia + potencia + energia reactiva)
+			var suma_termes = new Array();
+
+			for (var i=0; i<temps.length; i++)
+			{
+				suma_termes[i] = term_energ[i] + term_poten[i] + compl_reactiva[i];
+			}
+
+			//aplica impostos
+			var total_amb_iva = new Array();
+			var total_sense_iva = new Array();
+			for (var i=0; i<temps.length; i++)
+			{
+				total_sense_iva[i] = suma_termes[i]*(1 + tax_im1 + tax_im2) + tax_alq;
+				total_amb_iva[i] = total_sense_iva[i] * (parseFloat(1)+parseFloat(tax_iva));
+			}
+
+			//aqui ja hem acabat
+			var fi = temps.length-1; //index final
+
+			//RESUM
+			log("[+] RESUM");
+			log("  Maxim potencia        [kW]: "+maxim[1][fi]+"    "+maxim[2][fi]+"    "+maxim[3][fi]);
+			log("  Terme potencia (fix) [eur]: "+term_poten[fi]);
+			log("  Terme energia  (var) [eur]: "+term_energ[fi]);
+			log("  Compl. reactiva      [eur]: "+compl_reactiva[fi]);
+			log("  Total sense IVA      [eur]: "+total_sense_iva[fi]+"\n");
+			log("  TOTAL + IVA          [eur]: "+total_amb_iva[fi]+"\n");
+			log("falta el coste interrumpibilidad")
+
+			//empaquetar info d'interès en un objecte de return
+			var resultat = {
+				maxP1:maxim[1][fi],
+				maxP2:maxim[2][fi],
+				maxP3:maxim[3][fi],
+				poten:term_poten[fi],
+				energ:term_energ[fi],
+				react:compl_reactiva[fi],
+				total:total_amb_iva[fi],
+			}
+			return resultat;
+		}
+
+		function processa_corba(valors) 
+		{
+			//separa la corba per line breaks i filtra (elimina) linies buides
+			var linies=valors.split('\n').filter(function(n){return (n!="" && n!=" " && n!="	")});
+
+			//log
+			log("Processant "+linies.length+" línies al camp de text..."); //mostra numero de línies de la corba
+
+			//comprova que no estigui buit
+			if(linies.length==0) { log("[ERROR] camp de text buit"); return; }
+
 			/*DETECTA DATA INICIAL, TIME INTERVAL I NOMBRE DE TIMESTEPS*/
-			//linia=['01/01/2017', '00:00', '50', 'kW']
+			//format linia ['01/01/2017', '00:00', '50', 'kW']
 			var linia_inici=linies[0].split(' ');
 			var dia_inici=linia_inici[0];
 			var hor_inici=linia_inici[1];
 			//retalla string per convertir dia inicial a objecte Date
-			var d={};
+			var d={};//data
 			d.any=parseInt(dia_inici.split('/')[2]);
 			d.mes=parseInt(dia_inici.split('/')[1])-1; //gener=0,febrer=1,etc.
 			d.dia=parseInt(dia_inici.split('/')[0]);
@@ -39,39 +271,40 @@
 			log("Data inici: "+data_inici.toUTCString().replace("00: GMT",''));
 			log("Data final: "+data_final.toUTCString().replace("00: GMT",''));
 
-			//nombre de timesteps (hores)
+			//mostra a la pantalla el titol de la factura
+			(function(){
+				var ini=data_inici.toUTCString().substring(5,16)
+				var fin=data_final.toUTCString().substring(5,16)
+				var titol=document.querySelector('#titol');
+				var innerHTML="&mdash; Factura: "+ini+" a "+fin+" &mdash;";
+				titol.innerHTML=innerHTML;
+			})();
+
 			/*
-				28 dies = 672 hores (febrer)
-				29 dies = 696 hores (febrer de traspàs) (any%4==0)
-				31 dies = 744 hores (gener,abril,maig,juliol,agost,desembre)
-				30 dies = 720 hores (abril,juny,setembre,novembre)
-				canvis d'hora (març    -1 hora) = 743 hores
-				canvis d'hora (octubre +1 hora) = 745 hores
+				Calcula nombre de timesteps (hores)
+				- 28 dies = 672 hores (febrer)
+				- 29 dies = 696 hores (febrer de traspàs) (any%4==0)
+				- 31 dies = 744 hores (gener,abril,maig,juliol,agost,desembre)
+				- 30 dies = 720 hores (abril,juny,setembre,novembre)
+				- canvis d'hora (març    -1 hora) = 743 hores
+				- canvis d'hora (octubre +1 hora) = 745 hores
 			*/
 			var hores=(data_final-data_inici)/36e5; //passar de milisegons a hores
-
-			if([672,696,744,720,743,745].indexOf(hores)==-1)
-			{
-				log("[ERROR] nombre d'hores incorrecte ("+hores+")");
-			}
-			else
-			{
-				log("[OK] nombre d'hores possible ("+hores+")");
-			}
+			//comprova si el nombre de dades coincideix
+			if([672,696,744,720,743,745].indexOf(hores)==-1) { log("[ERROR] Nombre d'hores incorrecte ("+hores+")"); return; }
+			else { log("[OK] Nombre d'hores possible ("+hores+")"); }
 
 			//warning si no coincideixen
 			if(hores!=linies.length)
 			{
-				log("[WARNING]: Hi hauria d'haver "+hores+" hores ("+hores/24+" dies)");
-				log("[WARNING]: Hi ha "+linies.length+" hores");
+				log("[ERROR]: Hi hauria d'haver "+hores+" hores ("+hores/24+" dies)");
+				log("[ERROR]: Hi ha "+linies.length+" hores");
+				return;
 			}
-			else
-			{
-				log("[OK] Les hores coincideixen amb el nombre de línies ("+hores+")");
-			}
+			else { log("[OK] Les hores coincideixen amb el nombre de línies ("+hores+")"); }
 
-			//ves linia per linia i processa la informacio entrada
-			var Dates=[]; //dates introduïdes
+			//genera un objecte Date per cada línia introduïda
+			var Dates=[]; //array objects Date
 			for(var i=0;i<linies.length;i++)
 			{
 				var d={};
@@ -91,7 +324,6 @@
 				data.potKW=pot;
 				Dates.push(data);
 			}
-
 			log("[OK] S'ha creat l'array 'Dates' amb la propietat 'potKW' ("+Dates.length+")");
 
 			//comprova que les dates entrades son correctes
@@ -110,826 +342,890 @@
 			log("[OK] Les dates entrades ("+Dates.length+") son correctes i seguides");
 
 			//continuar aqui: assignar períodes a cada instant, fa falta info de TOU
-			//
+			//afegir propietat "periode" a cada objecte Date
+			for(var i=0;i<Dates.length;i++)
+			{
+				var data = Dates[i]; //objecte Date
+				data.periode=0; //valor inicial periode (donarà error si es zero)
+
+				//si es cap de setmana, assigna TOU festiu
+				var esCapDeSetmana=[0,6].indexOf(data.getUTCDay())+1;
+				var hora=data.getUTCHours(); //index de l'array de periodes
+				if(esCapDeSetmana)
+				{
+					data.periode=Tou.festiu[hora];
+				}
+				else//dies laborables
+				{
+					//comprova si es un dia festiu
+					Festius.forEach(function(festiu){ //festiu{dia,mes,nom}
+						if(data.getUTCDate()==festiu.dia)
+						{
+							if(data.getUTCMonth()==(festiu.mes-1))
+							{
+								data.periode=Tou.festiu[hora];
+								//log("Festiu detectat! "+data.toUTCString()+" periode: "+data.periode);
+							}
+						}
+					});
+
+					//comprova si es estiu o hivern 
+					var estiu = false; //TODO no se com es determina, si per mesos o per canvi d'hora BUSCAR
+					if(estiu){data.periode=Tou.laborable.estiu[hora];}
+					else{     data.periode=Tou.laborable.hivern[hora];}
+				}
+			}
+			log("[OK] S'han assignat els períodes tarifaris a cada hora del mes ("+Dates.map(function(d){return d.periode}).filter(function(p){return p!=0}).length+")");
+
+			//calcula la tarifa TODO
+			var potCon=[500,500,500];//kW
+			var preus_potencia=[5,5,5];//eur
+			var preus_energia=[0.5,0.5,0.5];//eur
+			var resultat=tarifa3(Dates,potCon,preus_potencia,preus_energia);
+			log(resultat)
+
+			document.querySelector('#resultat #total_iva').innerHTML=resultat.total.toFixed(2)
 
 			//mostra taula de preus
 			document.querySelector('#contracte').style.display='block'
+
 		}
 	</script>
 </head><body>
 
 <div id=root>
-	<h1 onclick=window.location.reload()><script>document.write(document.title)</script></h1>
-	<div class=nota>Enganxa aquí la corba horària del mes sencer <b>(dd/mm/aa hh:MM kW)</b></div>
-<textarea id=corba placeholder="Enganxa corba horària (dd/mm/aa hh:MM kW)">
-		01/01/2017 00:00 50 kW
-		01/01/2017 01:00 50 kW
-		01/01/2017 02:00 50 kW
-		01/01/2017 03:00 50 kW
-		01/01/2017 04:00 50 kW
-		01/01/2017 05:00 50 kW
-		01/01/2017 06:00 50 kW
-		01/01/2017 07:00 50 kW
-		01/01/2017 08:00 50 kW
-		01/01/2017 09:00 50 kW
-		01/01/2017 10:00 50 kW
-		01/01/2017 11:00 50 kW
-		01/01/2017 12:00 50 kW
-		01/01/2017 13:00 50 kW
-		01/01/2017 14:00 50 kW
-		01/01/2017 15:00 50 kW
-		01/01/2017 16:00 50 kW
-		01/01/2017 17:00 50 kW
-		01/01/2017 18:00 50 kW
-		01/01/2017 19:00 50 kW
-		01/01/2017 20:00 50 kW
-		01/01/2017 21:00 50 kW
-		01/01/2017 22:00 50 kW
-		01/01/2017 23:00 50 kW
+<h1 onclick=window.location.reload() title="Torna a començar"><script>document.write(document.title)</script></h1>
+<div class=nota>Enganxa aquí la corba horària de potència del mes sencer. <b>Format: dd/mm/aa hh:MM kW</b></div>
+<textarea id=corba placeholder="Corba horària dd/mm/aa hh:MM kW">
+	01/01/2017 00:00 50 kW
+	01/01/2017 01:00 50 kW
+	01/01/2017 02:00 50 kW
+	01/01/2017 03:00 50 kW
+	01/01/2017 04:00 50 kW
+	01/01/2017 05:00 50 kW
+	01/01/2017 06:00 50 kW
+	01/01/2017 07:00 50 kW
+	01/01/2017 08:00 50 kW
+	01/01/2017 09:00 50 kW
+	01/01/2017 10:00 50 kW
+	01/01/2017 11:00 50 kW
+	01/01/2017 12:00 50 kW
+	01/01/2017 13:00 50 kW
+	01/01/2017 14:00 50 kW
+	01/01/2017 15:00 50 kW
+	01/01/2017 16:00 50 kW
+	01/01/2017 17:00 50 kW
+	01/01/2017 18:00 50 kW
+	01/01/2017 19:00 50 kW
+	01/01/2017 20:00 50 kW
+	01/01/2017 21:00 50 kW
+	01/01/2017 22:00 50 kW
+	01/01/2017 23:00 50 kW
 
-		02/01/2017 00:00 50 kW
-		02/01/2017 01:00 50 kW
-		02/01/2017 02:00 50 kW
-		02/01/2017 03:00 50 kW
-		02/01/2017 04:00 50 kW
-		02/01/2017 05:00 50 kW
-		02/01/2017 06:00 50 kW
-		02/01/2017 07:00 50 kW
-		02/01/2017 08:00 50 kW
-		02/01/2017 09:00 50 kW
-		02/01/2017 10:00 50 kW
-		02/01/2017 11:00 50 kW
-		02/01/2017 12:00 50 kW
-		02/01/2017 13:00 50 kW
-		02/01/2017 14:00 50 kW
-		02/01/2017 15:00 50 kW
-		02/01/2017 16:00 50 kW
-		02/01/2017 17:00 50 kW
-		02/01/2017 18:00 50 kW
-		02/01/2017 19:00 50 kW
-		02/01/2017 20:00 50 kW
-		02/01/2017 21:00 50 kW
-		02/01/2017 22:00 50 kW
-		02/01/2017 23:00 50 kW
+	02/01/2017 00:00 50 kW
+	02/01/2017 01:00 50 kW
+	02/01/2017 02:00 50 kW
+	02/01/2017 03:00 50 kW
+	02/01/2017 04:00 50 kW
+	02/01/2017 05:00 50 kW
+	02/01/2017 06:00 50 kW
+	02/01/2017 07:00 50 kW
+	02/01/2017 08:00 50 kW
+	02/01/2017 09:00 50 kW
+	02/01/2017 10:00 50 kW
+	02/01/2017 11:00 50 kW
+	02/01/2017 12:00 50 kW
+	02/01/2017 13:00 50 kW
+	02/01/2017 14:00 50 kW
+	02/01/2017 15:00 50 kW
+	02/01/2017 16:00 50 kW
+	02/01/2017 17:00 50 kW
+	02/01/2017 18:00 50 kW
+	02/01/2017 19:00 50 kW
+	02/01/2017 20:00 50 kW
+	02/01/2017 21:00 50 kW
+	02/01/2017 22:00 50 kW
+	02/01/2017 23:00 50 kW
 
-		03/01/2017 00:00 50 kW
-		03/01/2017 01:00 50 kW
-		03/01/2017 02:00 50 kW
-		03/01/2017 03:00 50 kW
-		03/01/2017 04:00 50 kW
-		03/01/2017 05:00 50 kW
-		03/01/2017 06:00 50 kW
-		03/01/2017 07:00 50 kW
-		03/01/2017 08:00 50 kW
-		03/01/2017 09:00 50 kW
-		03/01/2017 10:00 50 kW
-		03/01/2017 11:00 50 kW
-		03/01/2017 12:00 50 kW
-		03/01/2017 13:00 50 kW
-		03/01/2017 14:00 50 kW
-		03/01/2017 15:00 50 kW
-		03/01/2017 16:00 50 kW
-		03/01/2017 17:00 50 kW
-		03/01/2017 18:00 50 kW
-		03/01/2017 19:00 50 kW
-		03/01/2017 20:00 50 kW
-		03/01/2017 21:00 50 kW
-		03/01/2017 22:00 50 kW
-		03/01/2017 23:00 50 kW
+	03/01/2017 00:00 50 kW
+	03/01/2017 01:00 50 kW
+	03/01/2017 02:00 50 kW
+	03/01/2017 03:00 50 kW
+	03/01/2017 04:00 50 kW
+	03/01/2017 05:00 50 kW
+	03/01/2017 06:00 50 kW
+	03/01/2017 07:00 50 kW
+	03/01/2017 08:00 50 kW
+	03/01/2017 09:00 50 kW
+	03/01/2017 10:00 50 kW
+	03/01/2017 11:00 50 kW
+	03/01/2017 12:00 50 kW
+	03/01/2017 13:00 50 kW
+	03/01/2017 14:00 50 kW
+	03/01/2017 15:00 50 kW
+	03/01/2017 16:00 50 kW
+	03/01/2017 17:00 50 kW
+	03/01/2017 18:00 50 kW
+	03/01/2017 19:00 50 kW
+	03/01/2017 20:00 50 kW
+	03/01/2017 21:00 50 kW
+	03/01/2017 22:00 50 kW
+	03/01/2017 23:00 50 kW
 
-		04/01/2017 00:00 50 kW
-		04/01/2017 01:00 50 kW
-		04/01/2017 02:00 50 kW
-		04/01/2017 03:00 50 kW
-		04/01/2017 04:00 50 kW
-		04/01/2017 05:00 50 kW
-		04/01/2017 06:00 50 kW
-		04/01/2017 07:00 50 kW
-		04/01/2017 08:00 50 kW
-		04/01/2017 09:00 50 kW
-		04/01/2017 10:00 50 kW
-		04/01/2017 11:00 50 kW
-		04/01/2017 12:00 50 kW
-		04/01/2017 13:00 50 kW
-		04/01/2017 14:00 50 kW
-		04/01/2017 15:00 50 kW
-		04/01/2017 16:00 50 kW
-		04/01/2017 17:00 50 kW
-		04/01/2017 18:00 50 kW
-		04/01/2017 19:00 50 kW
-		04/01/2017 20:00 50 kW
-		04/01/2017 21:00 50 kW
-		04/01/2017 22:00 50 kW
-		04/01/2017 23:00 50 kW
+	04/01/2017 00:00 50 kW
+	04/01/2017 01:00 50 kW
+	04/01/2017 02:00 50 kW
+	04/01/2017 03:00 50 kW
+	04/01/2017 04:00 50 kW
+	04/01/2017 05:00 50 kW
+	04/01/2017 06:00 50 kW
+	04/01/2017 07:00 50 kW
+	04/01/2017 08:00 50 kW
+	04/01/2017 09:00 50 kW
+	04/01/2017 10:00 50 kW
+	04/01/2017 11:00 50 kW
+	04/01/2017 12:00 50 kW
+	04/01/2017 13:00 50 kW
+	04/01/2017 14:00 50 kW
+	04/01/2017 15:00 50 kW
+	04/01/2017 16:00 50 kW
+	04/01/2017 17:00 50 kW
+	04/01/2017 18:00 50 kW
+	04/01/2017 19:00 50 kW
+	04/01/2017 20:00 50 kW
+	04/01/2017 21:00 50 kW
+	04/01/2017 22:00 50 kW
+	04/01/2017 23:00 50 kW
 
-		05/01/2017 00:00 50 kW
-		05/01/2017 01:00 50 kW
-		05/01/2017 02:00 50 kW
-		05/01/2017 03:00 50 kW
-		05/01/2017 04:00 50 kW
-		05/01/2017 05:00 50 kW
-		05/01/2017 06:00 50 kW
-		05/01/2017 07:00 50 kW
-		05/01/2017 08:00 50 kW
-		05/01/2017 09:00 50 kW
-		05/01/2017 10:00 50 kW
-		05/01/2017 11:00 50 kW
-		05/01/2017 12:00 50 kW
-		05/01/2017 13:00 50 kW
-		05/01/2017 14:00 50 kW
-		05/01/2017 15:00 50 kW
-		05/01/2017 16:00 50 kW
-		05/01/2017 17:00 50 kW
-		05/01/2017 18:00 50 kW
-		05/01/2017 19:00 50 kW
-		05/01/2017 20:00 50 kW
-		05/01/2017 21:00 50 kW
-		05/01/2017 22:00 50 kW
-		05/01/2017 23:00 50 kW
+	05/01/2017 00:00 50 kW
+	05/01/2017 01:00 50 kW
+	05/01/2017 02:00 50 kW
+	05/01/2017 03:00 50 kW
+	05/01/2017 04:00 50 kW
+	05/01/2017 05:00 50 kW
+	05/01/2017 06:00 50 kW
+	05/01/2017 07:00 50 kW
+	05/01/2017 08:00 50 kW
+	05/01/2017 09:00 50 kW
+	05/01/2017 10:00 50 kW
+	05/01/2017 11:00 50 kW
+	05/01/2017 12:00 50 kW
+	05/01/2017 13:00 50 kW
+	05/01/2017 14:00 50 kW
+	05/01/2017 15:00 50 kW
+	05/01/2017 16:00 50 kW
+	05/01/2017 17:00 50 kW
+	05/01/2017 18:00 50 kW
+	05/01/2017 19:00 50 kW
+	05/01/2017 20:00 50 kW
+	05/01/2017 21:00 50 kW
+	05/01/2017 22:00 50 kW
+	05/01/2017 23:00 50 kW
 
-		06/01/2017 00:00 50 kW
-		06/01/2017 01:00 50 kW
-		06/01/2017 02:00 50 kW
-		06/01/2017 03:00 50 kW
-		06/01/2017 04:00 50 kW
-		06/01/2017 05:00 50 kW
-		06/01/2017 06:00 50 kW
-		06/01/2017 07:00 50 kW
-		06/01/2017 08:00 50 kW
-		06/01/2017 09:00 50 kW
-		06/01/2017 10:00 50 kW
-		06/01/2017 11:00 50 kW
-		06/01/2017 12:00 50 kW
-		06/01/2017 13:00 50 kW
-		06/01/2017 14:00 50 kW
-		06/01/2017 15:00 50 kW
-		06/01/2017 16:00 50 kW
-		06/01/2017 17:00 50 kW
-		06/01/2017 18:00 50 kW
-		06/01/2017 19:00 50 kW
-		06/01/2017 20:00 50 kW
-		06/01/2017 21:00 50 kW
-		06/01/2017 22:00 50 kW
-		06/01/2017 23:00 50 kW
+	06/01/2017 00:00 50 kW
+	06/01/2017 01:00 50 kW
+	06/01/2017 02:00 50 kW
+	06/01/2017 03:00 50 kW
+	06/01/2017 04:00 50 kW
+	06/01/2017 05:00 50 kW
+	06/01/2017 06:00 50 kW
+	06/01/2017 07:00 50 kW
+	06/01/2017 08:00 50 kW
+	06/01/2017 09:00 50 kW
+	06/01/2017 10:00 50 kW
+	06/01/2017 11:00 50 kW
+	06/01/2017 12:00 50 kW
+	06/01/2017 13:00 50 kW
+	06/01/2017 14:00 50 kW
+	06/01/2017 15:00 50 kW
+	06/01/2017 16:00 50 kW
+	06/01/2017 17:00 50 kW
+	06/01/2017 18:00 50 kW
+	06/01/2017 19:00 50 kW
+	06/01/2017 20:00 50 kW
+	06/01/2017 21:00 50 kW
+	06/01/2017 22:00 50 kW
+	06/01/2017 23:00 50 kW
 
-		07/01/2017 00:00 50 kW
-		07/01/2017 01:00 50 kW
-		07/01/2017 02:00 50 kW
-		07/01/2017 03:00 50 kW
-		07/01/2017 04:00 50 kW
-		07/01/2017 05:00 50 kW
-		07/01/2017 06:00 50 kW
-		07/01/2017 07:00 50 kW
-		07/01/2017 08:00 50 kW
-		07/01/2017 09:00 50 kW
-		07/01/2017 10:00 50 kW
-		07/01/2017 11:00 50 kW
-		07/01/2017 12:00 50 kW
-		07/01/2017 13:00 50 kW
-		07/01/2017 14:00 50 kW
-		07/01/2017 15:00 50 kW
-		07/01/2017 16:00 50 kW
-		07/01/2017 17:00 50 kW
-		07/01/2017 18:00 50 kW
-		07/01/2017 19:00 50 kW
-		07/01/2017 20:00 50 kW
-		07/01/2017 21:00 50 kW
-		07/01/2017 22:00 50 kW
-		07/01/2017 23:00 50 kW
+	07/01/2017 00:00 50 kW
+	07/01/2017 01:00 50 kW
+	07/01/2017 02:00 50 kW
+	07/01/2017 03:00 50 kW
+	07/01/2017 04:00 50 kW
+	07/01/2017 05:00 50 kW
+	07/01/2017 06:00 50 kW
+	07/01/2017 07:00 50 kW
+	07/01/2017 08:00 50 kW
+	07/01/2017 09:00 50 kW
+	07/01/2017 10:00 50 kW
+	07/01/2017 11:00 50 kW
+	07/01/2017 12:00 50 kW
+	07/01/2017 13:00 50 kW
+	07/01/2017 14:00 50 kW
+	07/01/2017 15:00 50 kW
+	07/01/2017 16:00 50 kW
+	07/01/2017 17:00 50 kW
+	07/01/2017 18:00 50 kW
+	07/01/2017 19:00 50 kW
+	07/01/2017 20:00 50 kW
+	07/01/2017 21:00 50 kW
+	07/01/2017 22:00 50 kW
+	07/01/2017 23:00 50 kW
 
-		08/01/2017 00:00 50 kW
-		08/01/2017 01:00 50 kW
-		08/01/2017 02:00 50 kW
-		08/01/2017 03:00 50 kW
-		08/01/2017 04:00 50 kW
-		08/01/2017 05:00 50 kW
-		08/01/2017 06:00 50 kW
-		08/01/2017 07:00 50 kW
-		08/01/2017 08:00 50 kW
-		08/01/2017 09:00 50 kW
-		08/01/2017 10:00 50 kW
-		08/01/2017 11:00 50 kW
-		08/01/2017 12:00 50 kW
-		08/01/2017 13:00 50 kW
-		08/01/2017 14:00 50 kW
-		08/01/2017 15:00 50 kW
-		08/01/2017 16:00 50 kW
-		08/01/2017 17:00 50 kW
-		08/01/2017 18:00 50 kW
-		08/01/2017 19:00 50 kW
-		08/01/2017 20:00 50 kW
-		08/01/2017 21:00 50 kW
-		08/01/2017 22:00 50 kW
-		08/01/2017 23:00 50 kW
+	08/01/2017 00:00 50 kW
+	08/01/2017 01:00 50 kW
+	08/01/2017 02:00 50 kW
+	08/01/2017 03:00 50 kW
+	08/01/2017 04:00 50 kW
+	08/01/2017 05:00 50 kW
+	08/01/2017 06:00 50 kW
+	08/01/2017 07:00 50 kW
+	08/01/2017 08:00 50 kW
+	08/01/2017 09:00 50 kW
+	08/01/2017 10:00 50 kW
+	08/01/2017 11:00 50 kW
+	08/01/2017 12:00 50 kW
+	08/01/2017 13:00 50 kW
+	08/01/2017 14:00 50 kW
+	08/01/2017 15:00 50 kW
+	08/01/2017 16:00 50 kW
+	08/01/2017 17:00 50 kW
+	08/01/2017 18:00 50 kW
+	08/01/2017 19:00 50 kW
+	08/01/2017 20:00 50 kW
+	08/01/2017 21:00 50 kW
+	08/01/2017 22:00 50 kW
+	08/01/2017 23:00 50 kW
 
-		09/01/2017 00:00 50 kW
-		09/01/2017 01:00 50 kW
-		09/01/2017 02:00 50 kW
-		09/01/2017 03:00 50 kW
-		09/01/2017 04:00 50 kW
-		09/01/2017 05:00 50 kW
-		09/01/2017 06:00 50 kW
-		09/01/2017 07:00 50 kW
-		09/01/2017 08:00 50 kW
-		09/01/2017 09:00 50 kW
-		09/01/2017 10:00 50 kW
-		09/01/2017 11:00 50 kW
-		09/01/2017 12:00 50 kW
-		09/01/2017 13:00 50 kW
-		09/01/2017 14:00 50 kW
-		09/01/2017 15:00 50 kW
-		09/01/2017 16:00 50 kW
-		09/01/2017 17:00 50 kW
-		09/01/2017 18:00 50 kW
-		09/01/2017 19:00 50 kW
-		09/01/2017 20:00 50 kW
-		09/01/2017 21:00 50 kW
-		09/01/2017 22:00 50 kW
-		09/01/2017 23:00 50 kW
+	09/01/2017 00:00 50 kW
+	09/01/2017 01:00 50 kW
+	09/01/2017 02:00 50 kW
+	09/01/2017 03:00 50 kW
+	09/01/2017 04:00 50 kW
+	09/01/2017 05:00 50 kW
+	09/01/2017 06:00 50 kW
+	09/01/2017 07:00 50 kW
+	09/01/2017 08:00 50 kW
+	09/01/2017 09:00 50 kW
+	09/01/2017 10:00 50 kW
+	09/01/2017 11:00 50 kW
+	09/01/2017 12:00 50 kW
+	09/01/2017 13:00 50 kW
+	09/01/2017 14:00 50 kW
+	09/01/2017 15:00 50 kW
+	09/01/2017 16:00 50 kW
+	09/01/2017 17:00 50 kW
+	09/01/2017 18:00 50 kW
+	09/01/2017 19:00 50 kW
+	09/01/2017 20:00 50 kW
+	09/01/2017 21:00 50 kW
+	09/01/2017 22:00 50 kW
+	09/01/2017 23:00 50 kW
 
-		10/01/2017 00:00 50 kW
-		10/01/2017 01:00 50 kW
-		10/01/2017 02:00 50 kW
-		10/01/2017 03:00 50 kW
-		10/01/2017 04:00 50 kW
-		10/01/2017 05:00 50 kW
-		10/01/2017 06:00 50 kW
-		10/01/2017 07:00 50 kW
-		10/01/2017 08:00 50 kW
-		10/01/2017 09:00 50 kW
-		10/01/2017 10:00 50 kW
-		10/01/2017 11:00 50 kW
-		10/01/2017 12:00 50 kW
-		10/01/2017 13:00 50 kW
-		10/01/2017 14:00 50 kW
-		10/01/2017 15:00 50 kW
-		10/01/2017 16:00 50 kW
-		10/01/2017 17:00 50 kW
-		10/01/2017 18:00 50 kW
-		10/01/2017 19:00 50 kW
-		10/01/2017 20:00 50 kW
-		10/01/2017 21:00 50 kW
-		10/01/2017 22:00 50 kW
-		10/01/2017 23:00 50 kW
+	10/01/2017 00:00 50 kW
+	10/01/2017 01:00 50 kW
+	10/01/2017 02:00 50 kW
+	10/01/2017 03:00 50 kW
+	10/01/2017 04:00 50 kW
+	10/01/2017 05:00 50 kW
+	10/01/2017 06:00 50 kW
+	10/01/2017 07:00 50 kW
+	10/01/2017 08:00 50 kW
+	10/01/2017 09:00 50 kW
+	10/01/2017 10:00 50 kW
+	10/01/2017 11:00 50 kW
+	10/01/2017 12:00 50 kW
+	10/01/2017 13:00 50 kW
+	10/01/2017 14:00 50 kW
+	10/01/2017 15:00 50 kW
+	10/01/2017 16:00 50 kW
+	10/01/2017 17:00 50 kW
+	10/01/2017 18:00 50 kW
+	10/01/2017 19:00 50 kW
+	10/01/2017 20:00 50 kW
+	10/01/2017 21:00 50 kW
+	10/01/2017 22:00 50 kW
+	10/01/2017 23:00 50 kW
 
-		11/01/2017 00:00 50 kW
-		11/01/2017 01:00 50 kW
-		11/01/2017 02:00 50 kW
-		11/01/2017 03:00 50 kW
-		11/01/2017 04:00 50 kW
-		11/01/2017 05:00 50 kW
-		11/01/2017 06:00 50 kW
-		11/01/2017 07:00 50 kW
-		11/01/2017 08:00 50 kW
-		11/01/2017 09:00 50 kW
-		11/01/2017 10:00 50 kW
-		11/01/2017 11:00 50 kW
-		11/01/2017 12:00 50 kW
-		11/01/2017 13:00 50 kW
-		11/01/2017 14:00 50 kW
-		11/01/2017 15:00 50 kW
-		11/01/2017 16:00 50 kW
-		11/01/2017 17:00 50 kW
-		11/01/2017 18:00 50 kW
-		11/01/2017 19:00 50 kW
-		11/01/2017 20:00 50 kW
-		11/01/2017 21:00 50 kW
-		11/01/2017 22:00 50 kW
-		11/01/2017 23:00 50 kW
+	11/01/2017 00:00 50 kW
+	11/01/2017 01:00 50 kW
+	11/01/2017 02:00 50 kW
+	11/01/2017 03:00 50 kW
+	11/01/2017 04:00 50 kW
+	11/01/2017 05:00 50 kW
+	11/01/2017 06:00 50 kW
+	11/01/2017 07:00 50 kW
+	11/01/2017 08:00 50 kW
+	11/01/2017 09:00 50 kW
+	11/01/2017 10:00 50 kW
+	11/01/2017 11:00 50 kW
+	11/01/2017 12:00 50 kW
+	11/01/2017 13:00 50 kW
+	11/01/2017 14:00 50 kW
+	11/01/2017 15:00 50 kW
+	11/01/2017 16:00 50 kW
+	11/01/2017 17:00 50 kW
+	11/01/2017 18:00 50 kW
+	11/01/2017 19:00 50 kW
+	11/01/2017 20:00 50 kW
+	11/01/2017 21:00 50 kW
+	11/01/2017 22:00 50 kW
+	11/01/2017 23:00 50 kW
 
-		12/01/2017 00:00 50 kW
-		12/01/2017 01:00 50 kW
-		12/01/2017 02:00 50 kW
-		12/01/2017 03:00 50 kW
-		12/01/2017 04:00 50 kW
-		12/01/2017 05:00 50 kW
-		12/01/2017 06:00 50 kW
-		12/01/2017 07:00 50 kW
-		12/01/2017 08:00 50 kW
-		12/01/2017 09:00 50 kW
-		12/01/2017 10:00 50 kW
-		12/01/2017 11:00 50 kW
-		12/01/2017 12:00 50 kW
-		12/01/2017 13:00 50 kW
-		12/01/2017 14:00 50 kW
-		12/01/2017 15:00 50 kW
-		12/01/2017 16:00 50 kW
-		12/01/2017 17:00 50 kW
-		12/01/2017 18:00 50 kW
-		12/01/2017 19:00 50 kW
-		12/01/2017 20:00 50 kW
-		12/01/2017 21:00 50 kW
-		12/01/2017 22:00 50 kW
-		12/01/2017 23:00 50 kW
+	12/01/2017 00:00 50 kW
+	12/01/2017 01:00 50 kW
+	12/01/2017 02:00 50 kW
+	12/01/2017 03:00 50 kW
+	12/01/2017 04:00 50 kW
+	12/01/2017 05:00 50 kW
+	12/01/2017 06:00 50 kW
+	12/01/2017 07:00 50 kW
+	12/01/2017 08:00 50 kW
+	12/01/2017 09:00 50 kW
+	12/01/2017 10:00 50 kW
+	12/01/2017 11:00 50 kW
+	12/01/2017 12:00 50 kW
+	12/01/2017 13:00 50 kW
+	12/01/2017 14:00 50 kW
+	12/01/2017 15:00 50 kW
+	12/01/2017 16:00 50 kW
+	12/01/2017 17:00 50 kW
+	12/01/2017 18:00 50 kW
+	12/01/2017 19:00 50 kW
+	12/01/2017 20:00 50 kW
+	12/01/2017 21:00 50 kW
+	12/01/2017 22:00 50 kW
+	12/01/2017 23:00 50 kW
 
-		13/01/2017 00:00 50 kW
-		13/01/2017 01:00 50 kW
-		13/01/2017 02:00 50 kW
-		13/01/2017 03:00 50 kW
-		13/01/2017 04:00 50 kW
-		13/01/2017 05:00 50 kW
-		13/01/2017 06:00 50 kW
-		13/01/2017 07:00 50 kW
-		13/01/2017 08:00 50 kW
-		13/01/2017 09:00 50 kW
-		13/01/2017 10:00 50 kW
-		13/01/2017 11:00 50 kW
-		13/01/2017 12:00 50 kW
-		13/01/2017 13:00 50 kW
-		13/01/2017 14:00 50 kW
-		13/01/2017 15:00 50 kW
-		13/01/2017 16:00 50 kW
-		13/01/2017 17:00 50 kW
-		13/01/2017 18:00 50 kW
-		13/01/2017 19:00 50 kW
-		13/01/2017 20:00 50 kW
-		13/01/2017 21:00 50 kW
-		13/01/2017 22:00 50 kW
-		13/01/2017 23:00 50 kW
+	13/01/2017 00:00 50 kW
+	13/01/2017 01:00 50 kW
+	13/01/2017 02:00 50 kW
+	13/01/2017 03:00 50 kW
+	13/01/2017 04:00 50 kW
+	13/01/2017 05:00 50 kW
+	13/01/2017 06:00 50 kW
+	13/01/2017 07:00 50 kW
+	13/01/2017 08:00 50 kW
+	13/01/2017 09:00 50 kW
+	13/01/2017 10:00 50 kW
+	13/01/2017 11:00 50 kW
+	13/01/2017 12:00 50 kW
+	13/01/2017 13:00 50 kW
+	13/01/2017 14:00 50 kW
+	13/01/2017 15:00 50 kW
+	13/01/2017 16:00 50 kW
+	13/01/2017 17:00 50 kW
+	13/01/2017 18:00 50 kW
+	13/01/2017 19:00 50 kW
+	13/01/2017 20:00 50 kW
+	13/01/2017 21:00 50 kW
+	13/01/2017 22:00 50 kW
+	13/01/2017 23:00 50 kW
 
-		14/01/2017 00:00 50 kW
-		14/01/2017 01:00 50 kW
-		14/01/2017 02:00 50 kW
-		14/01/2017 03:00 50 kW
-		14/01/2017 04:00 50 kW
-		14/01/2017 05:00 50 kW
-		14/01/2017 06:00 50 kW
-		14/01/2017 07:00 50 kW
-		14/01/2017 08:00 50 kW
-		14/01/2017 09:00 50 kW
-		14/01/2017 10:00 50 kW
-		14/01/2017 11:00 50 kW
-		14/01/2017 12:00 50 kW
-		14/01/2017 13:00 50 kW
-		14/01/2017 14:00 50 kW
-		14/01/2017 15:00 50 kW
-		14/01/2017 16:00 50 kW
-		14/01/2017 17:00 50 kW
-		14/01/2017 18:00 50 kW
-		14/01/2017 19:00 50 kW
-		14/01/2017 20:00 50 kW
-		14/01/2017 21:00 50 kW
-		14/01/2017 22:00 50 kW
-		14/01/2017 23:00 50 kW
+	14/01/2017 00:00 50 kW
+	14/01/2017 01:00 50 kW
+	14/01/2017 02:00 50 kW
+	14/01/2017 03:00 50 kW
+	14/01/2017 04:00 50 kW
+	14/01/2017 05:00 50 kW
+	14/01/2017 06:00 50 kW
+	14/01/2017 07:00 50 kW
+	14/01/2017 08:00 50 kW
+	14/01/2017 09:00 50 kW
+	14/01/2017 10:00 50 kW
+	14/01/2017 11:00 50 kW
+	14/01/2017 12:00 50 kW
+	14/01/2017 13:00 50 kW
+	14/01/2017 14:00 50 kW
+	14/01/2017 15:00 50 kW
+	14/01/2017 16:00 50 kW
+	14/01/2017 17:00 50 kW
+	14/01/2017 18:00 50 kW
+	14/01/2017 19:00 50 kW
+	14/01/2017 20:00 50 kW
+	14/01/2017 21:00 50 kW
+	14/01/2017 22:00 50 kW
+	14/01/2017 23:00 50 kW
 
-		15/01/2017 00:00 50 kW
-		15/01/2017 01:00 50 kW
-		15/01/2017 02:00 50 kW
-		15/01/2017 03:00 50 kW
-		15/01/2017 04:00 50 kW
-		15/01/2017 05:00 50 kW
-		15/01/2017 06:00 50 kW
-		15/01/2017 07:00 50 kW
-		15/01/2017 08:00 50 kW
-		15/01/2017 09:00 50 kW
-		15/01/2017 10:00 50 kW
-		15/01/2017 11:00 50 kW
-		15/01/2017 12:00 50 kW
-		15/01/2017 13:00 50 kW
-		15/01/2017 14:00 50 kW
-		15/01/2017 15:00 50 kW
-		15/01/2017 16:00 50 kW
-		15/01/2017 17:00 50 kW
-		15/01/2017 18:00 50 kW
-		15/01/2017 19:00 50 kW
-		15/01/2017 20:00 50 kW
-		15/01/2017 21:00 50 kW
-		15/01/2017 22:00 50 kW
-		15/01/2017 23:00 50 kW
+	15/01/2017 00:00 50 kW
+	15/01/2017 01:00 50 kW
+	15/01/2017 02:00 50 kW
+	15/01/2017 03:00 50 kW
+	15/01/2017 04:00 50 kW
+	15/01/2017 05:00 50 kW
+	15/01/2017 06:00 50 kW
+	15/01/2017 07:00 50 kW
+	15/01/2017 08:00 50 kW
+	15/01/2017 09:00 50 kW
+	15/01/2017 10:00 50 kW
+	15/01/2017 11:00 50 kW
+	15/01/2017 12:00 50 kW
+	15/01/2017 13:00 50 kW
+	15/01/2017 14:00 50 kW
+	15/01/2017 15:00 50 kW
+	15/01/2017 16:00 50 kW
+	15/01/2017 17:00 50 kW
+	15/01/2017 18:00 50 kW
+	15/01/2017 19:00 50 kW
+	15/01/2017 20:00 50 kW
+	15/01/2017 21:00 50 kW
+	15/01/2017 22:00 50 kW
+	15/01/2017 23:00 50 kW
 
-		16/01/2017 00:00 50 kW
-		16/01/2017 01:00 50 kW
-		16/01/2017 02:00 50 kW
-		16/01/2017 03:00 50 kW
-		16/01/2017 04:00 50 kW
-		16/01/2017 05:00 50 kW
-		16/01/2017 06:00 50 kW
-		16/01/2017 07:00 50 kW
-		16/01/2017 08:00 50 kW
-		16/01/2017 09:00 50 kW
-		16/01/2017 10:00 50 kW
-		16/01/2017 11:00 50 kW
-		16/01/2017 12:00 50 kW
-		16/01/2017 13:00 50 kW
-		16/01/2017 14:00 50 kW
-		16/01/2017 15:00 50 kW
-		16/01/2017 16:00 50 kW
-		16/01/2017 17:00 50 kW
-		16/01/2017 18:00 50 kW
-		16/01/2017 19:00 50 kW
-		16/01/2017 20:00 50 kW
-		16/01/2017 21:00 50 kW
-		16/01/2017 22:00 50 kW
-		16/01/2017 23:00 50 kW
+	16/01/2017 00:00 50 kW
+	16/01/2017 01:00 50 kW
+	16/01/2017 02:00 50 kW
+	16/01/2017 03:00 50 kW
+	16/01/2017 04:00 50 kW
+	16/01/2017 05:00 50 kW
+	16/01/2017 06:00 50 kW
+	16/01/2017 07:00 50 kW
+	16/01/2017 08:00 50 kW
+	16/01/2017 09:00 50 kW
+	16/01/2017 10:00 50 kW
+	16/01/2017 11:00 50 kW
+	16/01/2017 12:00 50 kW
+	16/01/2017 13:00 50 kW
+	16/01/2017 14:00 50 kW
+	16/01/2017 15:00 50 kW
+	16/01/2017 16:00 50 kW
+	16/01/2017 17:00 50 kW
+	16/01/2017 18:00 50 kW
+	16/01/2017 19:00 50 kW
+	16/01/2017 20:00 50 kW
+	16/01/2017 21:00 50 kW
+	16/01/2017 22:00 50 kW
+	16/01/2017 23:00 50 kW
 
-		17/01/2017 00:00 50 kW
-		17/01/2017 01:00 50 kW
-		17/01/2017 02:00 50 kW
-		17/01/2017 03:00 50 kW
-		17/01/2017 04:00 50 kW
-		17/01/2017 05:00 50 kW
-		17/01/2017 06:00 50 kW
-		17/01/2017 07:00 50 kW
-		17/01/2017 08:00 50 kW
-		17/01/2017 09:00 50 kW
-		17/01/2017 10:00 50 kW
-		17/01/2017 11:00 50 kW
-		17/01/2017 12:00 50 kW
-		17/01/2017 13:00 50 kW
-		17/01/2017 14:00 50 kW
-		17/01/2017 15:00 50 kW
-		17/01/2017 16:00 50 kW
-		17/01/2017 17:00 50 kW
-		17/01/2017 18:00 50 kW
-		17/01/2017 19:00 50 kW
-		17/01/2017 20:00 50 kW
-		17/01/2017 21:00 50 kW
-		17/01/2017 22:00 50 kW
-		17/01/2017 23:00 50 kW
+	17/01/2017 00:00 50 kW
+	17/01/2017 01:00 50 kW
+	17/01/2017 02:00 50 kW
+	17/01/2017 03:00 50 kW
+	17/01/2017 04:00 50 kW
+	17/01/2017 05:00 50 kW
+	17/01/2017 06:00 50 kW
+	17/01/2017 07:00 50 kW
+	17/01/2017 08:00 50 kW
+	17/01/2017 09:00 50 kW
+	17/01/2017 10:00 50 kW
+	17/01/2017 11:00 50 kW
+	17/01/2017 12:00 50 kW
+	17/01/2017 13:00 50 kW
+	17/01/2017 14:00 50 kW
+	17/01/2017 15:00 50 kW
+	17/01/2017 16:00 50 kW
+	17/01/2017 17:00 50 kW
+	17/01/2017 18:00 50 kW
+	17/01/2017 19:00 50 kW
+	17/01/2017 20:00 50 kW
+	17/01/2017 21:00 50 kW
+	17/01/2017 22:00 50 kW
+	17/01/2017 23:00 50 kW
 
-		18/01/2017 00:00 50 kW
-		18/01/2017 01:00 50 kW
-		18/01/2017 02:00 50 kW
-		18/01/2017 03:00 50 kW
-		18/01/2017 04:00 50 kW
-		18/01/2017 05:00 50 kW
-		18/01/2017 06:00 50 kW
-		18/01/2017 07:00 50 kW
-		18/01/2017 08:00 50 kW
-		18/01/2017 09:00 50 kW
-		18/01/2017 10:00 50 kW
-		18/01/2017 11:00 50 kW
-		18/01/2017 12:00 50 kW
-		18/01/2017 13:00 50 kW
-		18/01/2017 14:00 50 kW
-		18/01/2017 15:00 50 kW
-		18/01/2017 16:00 50 kW
-		18/01/2017 17:00 50 kW
-		18/01/2017 18:00 50 kW
-		18/01/2017 19:00 50 kW
-		18/01/2017 20:00 50 kW
-		18/01/2017 21:00 50 kW
-		18/01/2017 22:00 50 kW
-		18/01/2017 23:00 50 kW
+	18/01/2017 00:00 50 kW
+	18/01/2017 01:00 50 kW
+	18/01/2017 02:00 50 kW
+	18/01/2017 03:00 50 kW
+	18/01/2017 04:00 50 kW
+	18/01/2017 05:00 50 kW
+	18/01/2017 06:00 50 kW
+	18/01/2017 07:00 50 kW
+	18/01/2017 08:00 50 kW
+	18/01/2017 09:00 50 kW
+	18/01/2017 10:00 50 kW
+	18/01/2017 11:00 50 kW
+	18/01/2017 12:00 50 kW
+	18/01/2017 13:00 50 kW
+	18/01/2017 14:00 50 kW
+	18/01/2017 15:00 50 kW
+	18/01/2017 16:00 50 kW
+	18/01/2017 17:00 50 kW
+	18/01/2017 18:00 50 kW
+	18/01/2017 19:00 50 kW
+	18/01/2017 20:00 50 kW
+	18/01/2017 21:00 50 kW
+	18/01/2017 22:00 50 kW
+	18/01/2017 23:00 50 kW
 
-		19/01/2017 00:00 50 kW
-		19/01/2017 01:00 50 kW
-		19/01/2017 02:00 50 kW
-		19/01/2017 03:00 50 kW
-		19/01/2017 04:00 50 kW
-		19/01/2017 05:00 50 kW
-		19/01/2017 06:00 50 kW
-		19/01/2017 07:00 50 kW
-		19/01/2017 08:00 50 kW
-		19/01/2017 09:00 50 kW
-		19/01/2017 10:00 50 kW
-		19/01/2017 11:00 50 kW
-		19/01/2017 12:00 50 kW
-		19/01/2017 13:00 50 kW
-		19/01/2017 14:00 50 kW
-		19/01/2017 15:00 50 kW
-		19/01/2017 16:00 50 kW
-		19/01/2017 17:00 50 kW
-		19/01/2017 18:00 50 kW
-		19/01/2017 19:00 50 kW
-		19/01/2017 20:00 50 kW
-		19/01/2017 21:00 50 kW
-		19/01/2017 22:00 50 kW
-		19/01/2017 23:00 50 kW
+	19/01/2017 00:00 50 kW
+	19/01/2017 01:00 50 kW
+	19/01/2017 02:00 50 kW
+	19/01/2017 03:00 50 kW
+	19/01/2017 04:00 50 kW
+	19/01/2017 05:00 50 kW
+	19/01/2017 06:00 50 kW
+	19/01/2017 07:00 50 kW
+	19/01/2017 08:00 50 kW
+	19/01/2017 09:00 50 kW
+	19/01/2017 10:00 50 kW
+	19/01/2017 11:00 50 kW
+	19/01/2017 12:00 50 kW
+	19/01/2017 13:00 50 kW
+	19/01/2017 14:00 50 kW
+	19/01/2017 15:00 50 kW
+	19/01/2017 16:00 50 kW
+	19/01/2017 17:00 50 kW
+	19/01/2017 18:00 50 kW
+	19/01/2017 19:00 50 kW
+	19/01/2017 20:00 50 kW
+	19/01/2017 21:00 50 kW
+	19/01/2017 22:00 50 kW
+	19/01/2017 23:00 50 kW
 
-		20/01/2017 00:00 50 kW
-		20/01/2017 01:00 50 kW
-		20/01/2017 02:00 50 kW
-		20/01/2017 03:00 50 kW
-		20/01/2017 04:00 50 kW
-		20/01/2017 05:00 50 kW
-		20/01/2017 06:00 50 kW
-		20/01/2017 07:00 50 kW
-		20/01/2017 08:00 50 kW
-		20/01/2017 09:00 50 kW
-		20/01/2017 10:00 50 kW
-		20/01/2017 11:00 50 kW
-		20/01/2017 12:00 50 kW
-		20/01/2017 13:00 50 kW
-		20/01/2017 14:00 50 kW
-		20/01/2017 15:00 50 kW
-		20/01/2017 16:00 50 kW
-		20/01/2017 17:00 50 kW
-		20/01/2017 18:00 50 kW
-		20/01/2017 19:00 50 kW
-		20/01/2017 20:00 50 kW
-		20/01/2017 21:00 50 kW
-		20/01/2017 22:00 50 kW
-		20/01/2017 23:00 50 kW
+	20/01/2017 00:00 50 kW
+	20/01/2017 01:00 50 kW
+	20/01/2017 02:00 50 kW
+	20/01/2017 03:00 50 kW
+	20/01/2017 04:00 50 kW
+	20/01/2017 05:00 50 kW
+	20/01/2017 06:00 50 kW
+	20/01/2017 07:00 50 kW
+	20/01/2017 08:00 50 kW
+	20/01/2017 09:00 50 kW
+	20/01/2017 10:00 50 kW
+	20/01/2017 11:00 50 kW
+	20/01/2017 12:00 50 kW
+	20/01/2017 13:00 50 kW
+	20/01/2017 14:00 50 kW
+	20/01/2017 15:00 50 kW
+	20/01/2017 16:00 50 kW
+	20/01/2017 17:00 50 kW
+	20/01/2017 18:00 50 kW
+	20/01/2017 19:00 50 kW
+	20/01/2017 20:00 50 kW
+	20/01/2017 21:00 50 kW
+	20/01/2017 22:00 50 kW
+	20/01/2017 23:00 50 kW
 
-		21/01/2017 00:00 50 kW
-		21/01/2017 01:00 50 kW
-		21/01/2017 02:00 50 kW
-		21/01/2017 03:00 50 kW
-		21/01/2017 04:00 50 kW
-		21/01/2017 05:00 50 kW
-		21/01/2017 06:00 50 kW
-		21/01/2017 07:00 50 kW
-		21/01/2017 08:00 50 kW
-		21/01/2017 09:00 50 kW
-		21/01/2017 10:00 50 kW
-		21/01/2017 11:00 50 kW
-		21/01/2017 12:00 50 kW
-		21/01/2017 13:00 50 kW
-		21/01/2017 14:00 50 kW
-		21/01/2017 15:00 50 kW
-		21/01/2017 16:00 50 kW
-		21/01/2017 17:00 50 kW
-		21/01/2017 18:00 50 kW
-		21/01/2017 19:00 50 kW
-		21/01/2017 20:00 50 kW
-		21/01/2017 21:00 50 kW
-		21/01/2017 22:00 50 kW
-		21/01/2017 23:00 50 kW
+	21/01/2017 00:00 50 kW
+	21/01/2017 01:00 50 kW
+	21/01/2017 02:00 50 kW
+	21/01/2017 03:00 50 kW
+	21/01/2017 04:00 50 kW
+	21/01/2017 05:00 50 kW
+	21/01/2017 06:00 50 kW
+	21/01/2017 07:00 50 kW
+	21/01/2017 08:00 50 kW
+	21/01/2017 09:00 50 kW
+	21/01/2017 10:00 50 kW
+	21/01/2017 11:00 50 kW
+	21/01/2017 12:00 50 kW
+	21/01/2017 13:00 50 kW
+	21/01/2017 14:00 50 kW
+	21/01/2017 15:00 50 kW
+	21/01/2017 16:00 50 kW
+	21/01/2017 17:00 50 kW
+	21/01/2017 18:00 50 kW
+	21/01/2017 19:00 50 kW
+	21/01/2017 20:00 50 kW
+	21/01/2017 21:00 50 kW
+	21/01/2017 22:00 50 kW
+	21/01/2017 23:00 50 kW
 
-		22/01/2017 00:00 50 kW
-		22/01/2017 01:00 50 kW
-		22/01/2017 02:00 50 kW
-		22/01/2017 03:00 50 kW
-		22/01/2017 04:00 50 kW
-		22/01/2017 05:00 50 kW
-		22/01/2017 06:00 50 kW
-		22/01/2017 07:00 50 kW
-		22/01/2017 08:00 50 kW
-		22/01/2017 09:00 50 kW
-		22/01/2017 10:00 50 kW
-		22/01/2017 11:00 50 kW
-		22/01/2017 12:00 50 kW
-		22/01/2017 13:00 50 kW
-		22/01/2017 14:00 50 kW
-		22/01/2017 15:00 50 kW
-		22/01/2017 16:00 50 kW
-		22/01/2017 17:00 50 kW
-		22/01/2017 18:00 50 kW
-		22/01/2017 19:00 50 kW
-		22/01/2017 20:00 50 kW
-		22/01/2017 21:00 50 kW
-		22/01/2017 22:00 50 kW
-		22/01/2017 23:00 50 kW
+	22/01/2017 00:00 50 kW
+	22/01/2017 01:00 50 kW
+	22/01/2017 02:00 50 kW
+	22/01/2017 03:00 50 kW
+	22/01/2017 04:00 50 kW
+	22/01/2017 05:00 50 kW
+	22/01/2017 06:00 50 kW
+	22/01/2017 07:00 50 kW
+	22/01/2017 08:00 50 kW
+	22/01/2017 09:00 50 kW
+	22/01/2017 10:00 50 kW
+	22/01/2017 11:00 50 kW
+	22/01/2017 12:00 50 kW
+	22/01/2017 13:00 50 kW
+	22/01/2017 14:00 50 kW
+	22/01/2017 15:00 50 kW
+	22/01/2017 16:00 50 kW
+	22/01/2017 17:00 50 kW
+	22/01/2017 18:00 50 kW
+	22/01/2017 19:00 50 kW
+	22/01/2017 20:00 50 kW
+	22/01/2017 21:00 50 kW
+	22/01/2017 22:00 50 kW
+	22/01/2017 23:00 50 kW
 
-		23/01/2017 00:00 50 kW
-		23/01/2017 01:00 50 kW
-		23/01/2017 02:00 50 kW
-		23/01/2017 03:00 50 kW
-		23/01/2017 04:00 50 kW
-		23/01/2017 05:00 50 kW
-		23/01/2017 06:00 50 kW
-		23/01/2017 07:00 50 kW
-		23/01/2017 08:00 50 kW
-		23/01/2017 09:00 50 kW
-		23/01/2017 10:00 50 kW
-		23/01/2017 11:00 50 kW
-		23/01/2017 12:00 50 kW
-		23/01/2017 13:00 50 kW
-		23/01/2017 14:00 50 kW
-		23/01/2017 15:00 50 kW
-		23/01/2017 16:00 50 kW
-		23/01/2017 17:00 50 kW
-		23/01/2017 18:00 50 kW
-		23/01/2017 19:00 50 kW
-		23/01/2017 20:00 50 kW
-		23/01/2017 21:00 50 kW
-		23/01/2017 22:00 50 kW
-		23/01/2017 23:00 50 kW
+	23/01/2017 00:00 50 kW
+	23/01/2017 01:00 50 kW
+	23/01/2017 02:00 50 kW
+	23/01/2017 03:00 50 kW
+	23/01/2017 04:00 50 kW
+	23/01/2017 05:00 50 kW
+	23/01/2017 06:00 50 kW
+	23/01/2017 07:00 50 kW
+	23/01/2017 08:00 50 kW
+	23/01/2017 09:00 50 kW
+	23/01/2017 10:00 50 kW
+	23/01/2017 11:00 50 kW
+	23/01/2017 12:00 50 kW
+	23/01/2017 13:00 50 kW
+	23/01/2017 14:00 50 kW
+	23/01/2017 15:00 50 kW
+	23/01/2017 16:00 50 kW
+	23/01/2017 17:00 50 kW
+	23/01/2017 18:00 50 kW
+	23/01/2017 19:00 50 kW
+	23/01/2017 20:00 50 kW
+	23/01/2017 21:00 50 kW
+	23/01/2017 22:00 50 kW
+	23/01/2017 23:00 50 kW
 
-		24/01/2017 00:00 50 kW
-		24/01/2017 01:00 50 kW
-		24/01/2017 02:00 50 kW
-		24/01/2017 03:00 50 kW
-		24/01/2017 04:00 50 kW
-		24/01/2017 05:00 50 kW
-		24/01/2017 06:00 50 kW
-		24/01/2017 07:00 50 kW
-		24/01/2017 08:00 50 kW
-		24/01/2017 09:00 50 kW
-		24/01/2017 10:00 50 kW
-		24/01/2017 11:00 50 kW
-		24/01/2017 12:00 50 kW
-		24/01/2017 13:00 50 kW
-		24/01/2017 14:00 50 kW
-		24/01/2017 15:00 50 kW
-		24/01/2017 16:00 50 kW
-		24/01/2017 17:00 50 kW
-		24/01/2017 18:00 50 kW
-		24/01/2017 19:00 50 kW
-		24/01/2017 20:00 50 kW
-		24/01/2017 21:00 50 kW
-		24/01/2017 22:00 50 kW
-		24/01/2017 23:00 50 kW
+	24/01/2017 00:00 50 kW
+	24/01/2017 01:00 50 kW
+	24/01/2017 02:00 50 kW
+	24/01/2017 03:00 50 kW
+	24/01/2017 04:00 50 kW
+	24/01/2017 05:00 50 kW
+	24/01/2017 06:00 50 kW
+	24/01/2017 07:00 50 kW
+	24/01/2017 08:00 50 kW
+	24/01/2017 09:00 50 kW
+	24/01/2017 10:00 50 kW
+	24/01/2017 11:00 50 kW
+	24/01/2017 12:00 50 kW
+	24/01/2017 13:00 50 kW
+	24/01/2017 14:00 50 kW
+	24/01/2017 15:00 50 kW
+	24/01/2017 16:00 50 kW
+	24/01/2017 17:00 50 kW
+	24/01/2017 18:00 50 kW
+	24/01/2017 19:00 50 kW
+	24/01/2017 20:00 50 kW
+	24/01/2017 21:00 50 kW
+	24/01/2017 22:00 50 kW
+	24/01/2017 23:00 50 kW
 
-		25/01/2017 00:00 50 kW
-		25/01/2017 01:00 50 kW
-		25/01/2017 02:00 50 kW
-		25/01/2017 03:00 50 kW
-		25/01/2017 04:00 50 kW
-		25/01/2017 05:00 50 kW
-		25/01/2017 06:00 50 kW
-		25/01/2017 07:00 50 kW
-		25/01/2017 08:00 50 kW
-		25/01/2017 09:00 50 kW
-		25/01/2017 10:00 50 kW
-		25/01/2017 11:00 50 kW
-		25/01/2017 12:00 50 kW
-		25/01/2017 13:00 50 kW
-		25/01/2017 14:00 50 kW
-		25/01/2017 15:00 50 kW
-		25/01/2017 16:00 50 kW
-		25/01/2017 17:00 50 kW
-		25/01/2017 18:00 50 kW
-		25/01/2017 19:00 50 kW
-		25/01/2017 20:00 50 kW
-		25/01/2017 21:00 50 kW
-		25/01/2017 22:00 50 kW
-		25/01/2017 23:00 50 kW
+	25/01/2017 00:00 50 kW
+	25/01/2017 01:00 50 kW
+	25/01/2017 02:00 50 kW
+	25/01/2017 03:00 50 kW
+	25/01/2017 04:00 50 kW
+	25/01/2017 05:00 50 kW
+	25/01/2017 06:00 50 kW
+	25/01/2017 07:00 50 kW
+	25/01/2017 08:00 50 kW
+	25/01/2017 09:00 50 kW
+	25/01/2017 10:00 50 kW
+	25/01/2017 11:00 50 kW
+	25/01/2017 12:00 50 kW
+	25/01/2017 13:00 50 kW
+	25/01/2017 14:00 50 kW
+	25/01/2017 15:00 50 kW
+	25/01/2017 16:00 50 kW
+	25/01/2017 17:00 50 kW
+	25/01/2017 18:00 50 kW
+	25/01/2017 19:00 50 kW
+	25/01/2017 20:00 50 kW
+	25/01/2017 21:00 50 kW
+	25/01/2017 22:00 50 kW
+	25/01/2017 23:00 50 kW
 
-		26/01/2017 00:00 50 kW
-		26/01/2017 01:00 50 kW
-		26/01/2017 02:00 50 kW
-		26/01/2017 03:00 50 kW
-		26/01/2017 04:00 50 kW
-		26/01/2017 05:00 50 kW
-		26/01/2017 06:00 50 kW
-		26/01/2017 07:00 50 kW
-		26/01/2017 08:00 50 kW
-		26/01/2017 09:00 50 kW
-		26/01/2017 10:00 50 kW
-		26/01/2017 11:00 50 kW
-		26/01/2017 12:00 50 kW
-		26/01/2017 13:00 50 kW
-		26/01/2017 14:00 50 kW
-		26/01/2017 15:00 50 kW
-		26/01/2017 16:00 50 kW
-		26/01/2017 17:00 50 kW
-		26/01/2017 18:00 50 kW
-		26/01/2017 19:00 50 kW
-		26/01/2017 20:00 50 kW
-		26/01/2017 21:00 50 kW
-		26/01/2017 22:00 50 kW
-		26/01/2017 23:00 50 kW
+	26/01/2017 00:00 50 kW
+	26/01/2017 01:00 50 kW
+	26/01/2017 02:00 50 kW
+	26/01/2017 03:00 50 kW
+	26/01/2017 04:00 50 kW
+	26/01/2017 05:00 50 kW
+	26/01/2017 06:00 50 kW
+	26/01/2017 07:00 50 kW
+	26/01/2017 08:00 50 kW
+	26/01/2017 09:00 50 kW
+	26/01/2017 10:00 50 kW
+	26/01/2017 11:00 50 kW
+	26/01/2017 12:00 50 kW
+	26/01/2017 13:00 50 kW
+	26/01/2017 14:00 50 kW
+	26/01/2017 15:00 50 kW
+	26/01/2017 16:00 50 kW
+	26/01/2017 17:00 50 kW
+	26/01/2017 18:00 50 kW
+	26/01/2017 19:00 50 kW
+	26/01/2017 20:00 50 kW
+	26/01/2017 21:00 50 kW
+	26/01/2017 22:00 50 kW
+	26/01/2017 23:00 50 kW
 
-		27/01/2017 00:00 50 kW
-		27/01/2017 01:00 50 kW
-		27/01/2017 02:00 50 kW
-		27/01/2017 03:00 50 kW
-		27/01/2017 04:00 50 kW
-		27/01/2017 05:00 50 kW
-		27/01/2017 06:00 50 kW
-		27/01/2017 07:00 50 kW
-		27/01/2017 08:00 50 kW
-		27/01/2017 09:00 50 kW
-		27/01/2017 10:00 50 kW
-		27/01/2017 11:00 50 kW
-		27/01/2017 12:00 50 kW
-		27/01/2017 13:00 50 kW
-		27/01/2017 14:00 50 kW
-		27/01/2017 15:00 50 kW
-		27/01/2017 16:00 50 kW
-		27/01/2017 17:00 50 kW
-		27/01/2017 18:00 50 kW
-		27/01/2017 19:00 50 kW
-		27/01/2017 20:00 50 kW
-		27/01/2017 21:00 50 kW
-		27/01/2017 22:00 50 kW
-		27/01/2017 23:00 50 kW
+	27/01/2017 00:00 50 kW
+	27/01/2017 01:00 50 kW
+	27/01/2017 02:00 50 kW
+	27/01/2017 03:00 50 kW
+	27/01/2017 04:00 50 kW
+	27/01/2017 05:00 50 kW
+	27/01/2017 06:00 50 kW
+	27/01/2017 07:00 50 kW
+	27/01/2017 08:00 50 kW
+	27/01/2017 09:00 50 kW
+	27/01/2017 10:00 50 kW
+	27/01/2017 11:00 50 kW
+	27/01/2017 12:00 50 kW
+	27/01/2017 13:00 50 kW
+	27/01/2017 14:00 50 kW
+	27/01/2017 15:00 50 kW
+	27/01/2017 16:00 50 kW
+	27/01/2017 17:00 50 kW
+	27/01/2017 18:00 50 kW
+	27/01/2017 19:00 50 kW
+	27/01/2017 20:00 50 kW
+	27/01/2017 21:00 50 kW
+	27/01/2017 22:00 50 kW
+	27/01/2017 23:00 50 kW
 
-		28/01/2017 00:00 50 kW
-		28/01/2017 01:00 50 kW
-		28/01/2017 02:00 50 kW
-		28/01/2017 03:00 50 kW
-		28/01/2017 04:00 50 kW
-		28/01/2017 05:00 50 kW
-		28/01/2017 06:00 50 kW
-		28/01/2017 07:00 50 kW
-		28/01/2017 08:00 50 kW
-		28/01/2017 09:00 50 kW
-		28/01/2017 10:00 50 kW
-		28/01/2017 11:00 50 kW
-		28/01/2017 12:00 50 kW
-		28/01/2017 13:00 50 kW
-		28/01/2017 14:00 50 kW
-		28/01/2017 15:00 50 kW
-		28/01/2017 16:00 50 kW
-		28/01/2017 17:00 50 kW
-		28/01/2017 18:00 50 kW
-		28/01/2017 19:00 50 kW
-		28/01/2017 20:00 50 kW
-		28/01/2017 21:00 50 kW
-		28/01/2017 22:00 50 kW
-		28/01/2017 23:00 50 kW
+	28/01/2017 00:00 50 kW
+	28/01/2017 01:00 50 kW
+	28/01/2017 02:00 50 kW
+	28/01/2017 03:00 50 kW
+	28/01/2017 04:00 50 kW
+	28/01/2017 05:00 50 kW
+	28/01/2017 06:00 50 kW
+	28/01/2017 07:00 50 kW
+	28/01/2017 08:00 50 kW
+	28/01/2017 09:00 50 kW
+	28/01/2017 10:00 50 kW
+	28/01/2017 11:00 50 kW
+	28/01/2017 12:00 50 kW
+	28/01/2017 13:00 50 kW
+	28/01/2017 14:00 50 kW
+	28/01/2017 15:00 50 kW
+	28/01/2017 16:00 50 kW
+	28/01/2017 17:00 50 kW
+	28/01/2017 18:00 50 kW
+	28/01/2017 19:00 50 kW
+	28/01/2017 20:00 50 kW
+	28/01/2017 21:00 50 kW
+	28/01/2017 22:00 50 kW
+	28/01/2017 23:00 50 kW
 
-		29/01/2017 00:00 50 kW
-		29/01/2017 01:00 50 kW
-		29/01/2017 02:00 50 kW
-		29/01/2017 03:00 50 kW
-		29/01/2017 04:00 50 kW
-		29/01/2017 05:00 50 kW
-		29/01/2017 06:00 50 kW
-		29/01/2017 07:00 50 kW
-		29/01/2017 08:00 50 kW
-		29/01/2017 09:00 50 kW
-		29/01/2017 10:00 50 kW
-		29/01/2017 11:00 50 kW
-		29/01/2017 12:00 50 kW
-		29/01/2017 13:00 50 kW
-		29/01/2017 14:00 50 kW
-		29/01/2017 15:00 50 kW
-		29/01/2017 16:00 50 kW
-		29/01/2017 17:00 50 kW
-		29/01/2017 18:00 50 kW
-		29/01/2017 19:00 50 kW
-		29/01/2017 20:00 50 kW
-		29/01/2017 21:00 50 kW
-		29/01/2017 22:00 50 kW
-		29/01/2017 23:00 50 kW
+	29/01/2017 00:00 50 kW
+	29/01/2017 01:00 50 kW
+	29/01/2017 02:00 50 kW
+	29/01/2017 03:00 50 kW
+	29/01/2017 04:00 50 kW
+	29/01/2017 05:00 50 kW
+	29/01/2017 06:00 50 kW
+	29/01/2017 07:00 50 kW
+	29/01/2017 08:00 50 kW
+	29/01/2017 09:00 50 kW
+	29/01/2017 10:00 50 kW
+	29/01/2017 11:00 50 kW
+	29/01/2017 12:00 50 kW
+	29/01/2017 13:00 50 kW
+	29/01/2017 14:00 50 kW
+	29/01/2017 15:00 50 kW
+	29/01/2017 16:00 50 kW
+	29/01/2017 17:00 50 kW
+	29/01/2017 18:00 50 kW
+	29/01/2017 19:00 50 kW
+	29/01/2017 20:00 50 kW
+	29/01/2017 21:00 50 kW
+	29/01/2017 22:00 50 kW
+	29/01/2017 23:00 50 kW
 
-		30/01/2017 00:00 50 kW
-		30/01/2017 01:00 50 kW
-		30/01/2017 02:00 50 kW
-		30/01/2017 03:00 50 kW
-		30/01/2017 04:00 50 kW
-		30/01/2017 05:00 50 kW
-		30/01/2017 06:00 50 kW
-		30/01/2017 07:00 50 kW
-		30/01/2017 08:00 50 kW
-		30/01/2017 09:00 50 kW
-		30/01/2017 10:00 50 kW
-		30/01/2017 11:00 50 kW
-		30/01/2017 12:00 50 kW
-		30/01/2017 13:00 50 kW
-		30/01/2017 14:00 50 kW
-		30/01/2017 15:00 50 kW
-		30/01/2017 16:00 50 kW
-		30/01/2017 17:00 50 kW
-		30/01/2017 18:00 50 kW
-		30/01/2017 19:00 50 kW
-		30/01/2017 20:00 50 kW
-		30/01/2017 21:00 50 kW
-		30/01/2017 22:00 50 kW
-		30/01/2017 23:00 50 kW
+	30/01/2017 00:00 50 kW
+	30/01/2017 01:00 50 kW
+	30/01/2017 02:00 50 kW
+	30/01/2017 03:00 50 kW
+	30/01/2017 04:00 50 kW
+	30/01/2017 05:00 50 kW
+	30/01/2017 06:00 50 kW
+	30/01/2017 07:00 50 kW
+	30/01/2017 08:00 50 kW
+	30/01/2017 09:00 50 kW
+	30/01/2017 10:00 50 kW
+	30/01/2017 11:00 50 kW
+	30/01/2017 12:00 50 kW
+	30/01/2017 13:00 50 kW
+	30/01/2017 14:00 50 kW
+	30/01/2017 15:00 50 kW
+	30/01/2017 16:00 50 kW
+	30/01/2017 17:00 50 kW
+	30/01/2017 18:00 50 kW
+	30/01/2017 19:00 50 kW
+	30/01/2017 20:00 50 kW
+	30/01/2017 21:00 50 kW
+	30/01/2017 22:00 50 kW
+	30/01/2017 23:00 50 kW
 
-		31/01/2017 00:00 50 kW
-		31/01/2017 01:00 50 kW
-		31/01/2017 02:00 50 kW
-		31/01/2017 03:00 50 kW
-		31/01/2017 04:00 50 kW
-		31/01/2017 05:00 50 kW
-		31/01/2017 06:00 50 kW
-		31/01/2017 07:00 50 kW
-		31/01/2017 08:00 50 kW
-		31/01/2017 09:00 50 kW
-		31/01/2017 10:00 50 kW
-		31/01/2017 11:00 50 kW
-		31/01/2017 12:00 50 kW
-		31/01/2017 13:00 50 kW
-		31/01/2017 14:00 50 kW
-		31/01/2017 15:00 50 kW
-		31/01/2017 16:00 50 kW
-		31/01/2017 17:00 50 kW
-		31/01/2017 18:00 50 kW
-		31/01/2017 19:00 50 kW
-		31/01/2017 20:00 50 kW
-		31/01/2017 21:00 50 kW
-		31/01/2017 22:00 50 kW
-		31/01/2017 23:00 50 kW
+	31/01/2017 00:00 50 kW
+	31/01/2017 01:00 50 kW
+	31/01/2017 02:00 50 kW
+	31/01/2017 03:00 50 kW
+	31/01/2017 04:00 50 kW
+	31/01/2017 05:00 50 kW
+	31/01/2017 06:00 50 kW
+	31/01/2017 07:00 50 kW
+	31/01/2017 08:00 50 kW
+	31/01/2017 09:00 50 kW
+	31/01/2017 10:00 50 kW
+	31/01/2017 11:00 50 kW
+	31/01/2017 12:00 50 kW
+	31/01/2017 13:00 50 kW
+	31/01/2017 14:00 50 kW
+	31/01/2017 15:00 50 kW
+	31/01/2017 16:00 50 kW
+	31/01/2017 17:00 50 kW
+	31/01/2017 18:00 50 kW
+	31/01/2017 19:00 50 kW
+	31/01/2017 20:00 50 kW
+	31/01/2017 21:00 50 kW
+	31/01/2017 22:00 50 kW
+	31/01/2017 23:00 50 kW
 </textarea>
 
 <div class=botonera>
 	<button id=btn_neteja   onclick=document.querySelector('#corba').value=''>Clear</button>
-	<button id=btn_processa onclick=processa_corba(document.querySelector('#corba').value)>Següent</button>
+	<button id=btn_processa onclick=processa_corba(document.querySelector('#corba').value)>Calcula factura</button>
 </div>
 
-<div id=contracte style=display:>
-	<table style=margin-top:1em>
+<div id=titol></div><!--mes detectat-->
+
+<div id=contracte style="display:
+none">
+
+	<div id=resultat>
+		<div>
+			Total + IVA: <span id=total_iva>0</span> euros
+			<button id=btn_detall onclick="veureDetall()">Veure detallat</button>
+			<script>
+				function veureDetall()
+				{
+					var d=document.querySelector('#detall');
+					d.style.display=d.style.display=='none'?"":"none";
+				}
+			</script>
+		</div>
+	</div>
+	<div id=detall style=display:none>
+		detall factura en construcció
+	</div>
+
+	<table>
 		<!--linkar amb cookies mes endavant (amb javascript)-->
-		<tr><th colspan=4>Contracte
-		<tr><th>Període<th>P1<th>P2<th>P3
+		<tr><th colspan=4>Dades contracte
+		<tr><th>Període<th>P1 punta<th>P2 llano<th>P3 valle
 		<tr><th>Potència contractada
-			<td><input placeholder="kW">
-			<td><input placeholder="kW">
-			<td><input placeholder="kW">
+			<td><input placeholder="kW" value=500>
+			<td><input placeholder="kW" value=500>
+			<td><input placeholder="kW" value=500>
 		<tr><th>Preu potència       
-			<td><input placeholder="eur/kW">
-			<td><input placeholder="eur/kW">
-			<td><input placeholder="eur/kW">
+			<td><input placeholder="eur/kW" value=5>
+			<td><input placeholder="eur/kW" value=5>
+			<td><input placeholder="eur/kW" value=5>
 		<tr><th>Preu energia
-			<td><input placeholder="eur/kWh">
-			<td><input placeholder="eur/kWh">
-			<td><input placeholder="eur/kWh">
+			<td><input placeholder="eur/kWh" value=0.5>
+			<td><input placeholder="eur/kWh" value=0.5>
+			<td><input placeholder="eur/kWh" value=0.5>
 		<tr><th colspan=4>Impostos
-		<tr><th>Lloguer (eur)  <td colspan=3><input placeholder=eur value=30>
+		<tr><th>Lloguer (eur)  <td colspan=3><input placeholder=eur value=50>
 		<tr><th>Impost elèctric<td colspan=3><input value=0.05113>
 		<tr><th>IVA            <td colspan=3><input value=0.21>
-		<tr><th colspan=4>Dies festius (no laborables)
+		<tr><th colspan=4>Dies festius
 		<script>
-			for(var dia in Festius)
-			{
-				document.write("<tr><td>"+dia+"<td>"+Festius[dia]+"<td colspan=2><select><option>Si<option>No</select> <br>")
-			}
+			Festius.forEach(function(festiu){
+				document.write("<tr mes="+festiu.mes+" dia="+festiu.dia+"><td>"+festiu.dia+"/"+festiu.mes+"<td>"+festiu.nom);
+				document.write("<td colspan=2><select><option>Si<option selected>No</select> <br>")
+			});
 		</script>
 		</tr>
 		<tr><th colspan=4>Canvi d'hora (horari estiu)
@@ -937,79 +1233,25 @@
 			<th>Inici
 			<td>
 				<select>
-					<option>1
-					<option>2
-					<option>3
-					<option>4
-					<option>5
-					<option>6
-					<option>7
-					<option>8
-					<option>9
-					<option>10
-					<option>11
-					<option>12
-					<option>13
-					<option>14
-					<option>15
-					<option>16
-					<option>17
-					<option>18
-					<option>19
-					<option>20
-					<option>21
-					<option>22
-					<option>23
-					<option>24
-					<option>25
-					<option>26
-					<option>27
-					<option>28
-					<option>29
-					<option>30
-					<option>31
+					<option>1 <option>2 <option>3 <option>4 <option>5 <option>6 <option>7 <option>8 <option>9 <option>10
+					<option>11 <option>12 <option>13 <option>14 <option>15 <option>16 <option>17 <option>18 <option>19
+					<option>20 <option>21 <option>22 <option>23 <option>24 <option>25 <option>26 <option>27 <option>28
+					<option>29 <option>30 <option selected>31
 				</select> 
 				març de 2017 02:00 AM
 			</td>
 			<th>Final
 			<td>
 				<select>
-					<option>1
-					<option>2
-					<option>3
-					<option>4
-					<option>5
-					<option>6
-					<option>7
-					<option>8
-					<option>9
-					<option>10
-					<option>11
-					<option>12
-					<option>13
-					<option>14
-					<option>15
-					<option>16
-					<option>17
-					<option>18
-					<option>19
-					<option>20
-					<option>21
-					<option>22
-					<option>23
-					<option>24
-					<option>25
-					<option>26
-					<option>27
-					<option>28
-					<option>29
-					<option>30
-					<option>31
+					<option>1 <option>2 <option>3 <option>4 <option>5 <option>6 <option>7 <option>8 <option>9 <option>10
+					<option>11 <option>12 <option>13 <option>14 <option>15 <option>16 <option>17 <option>18 <option>19
+					<option>20 <option>21 <option>22 <option>23 <option>24 <option>25 <option>26 <option>27 <option>28
+					<option>29 <option>30 <option selected>31
 				</select> 
 				octubre de 2017 02:00 AM
 			</tr>
 	</table>
-	<div>Grafic</div>
+
 </div>
 
 </div id=root>

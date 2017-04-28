@@ -1,6 +1,15 @@
 body{
-	margin:0 auto
+	margin:0 auto;
+	overflow-y:scroll;
+	font-size:13px;
 }
+
+h1{
+	background:#abc;
+	margin-top:0;
+	padding:0.5em;
+}
+
 [onclick]{cursor:pointer}
 #root {
 	text-align:center;
@@ -10,7 +19,7 @@ body{
 	margin-bottom:10px;
 }
 #corba {
-	width:350px;
+	width:375px;
 	height:150px;
 	font-family:monospace;
 }
@@ -18,7 +27,21 @@ body{
 	padding:1em 6em;
 	margin:auto;
 }
-
+#titol {
+	margin-top:5px;
+	font-weight:bold;
+	background:#abc;
+	padding:0.5em;
+}
+#resultat {
+	font-size:20px;
+	padding:0.5em;
+	background:orange;
+	margin-bottom:5px;
+}
+#contracte {
+	margin-bottom:100px;
+}
 #contracte table th[colspan]
 {
 	background:#ddd;
