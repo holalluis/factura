@@ -4,18 +4,17 @@
 	*
 	*/
 
-/**New cookie*/
+/* New cookie */
 function setCookie(name,value,days) {
 	//expires
 	days=days||365;
 	var d=new Date();
 	d.setTime(d.getTime()+(days*24*60*60*1000));
 	var expires="expires="+d.toUTCString();
-	//set cookie
 	document.cookie=name+"="+value+";"+expires;
 }
 
-/*Read cookie*/
+/* Read cookie */
 function getCookie(name) {
 	var nameEQ=name+"=";
 	var ca=document.cookie.split(';');
@@ -30,7 +29,7 @@ function getCookie(name) {
 	return null;
 }
 
-/*Remove cookie*/
+/* Remove cookie */
 function removeCookie(name) {
 	document.cookie = name+"=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
 	console.log("Cookie '"+name+"' removed")
