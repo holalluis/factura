@@ -1,4 +1,4 @@
-# Factura tarifa 3.1A
+# Calculadora factures tarifa 3.1A (Espanya)
 
 Calcula la factura a partir de la corba horària
 (dada de potència consumida cada hora en kW)

@@ -210,7 +210,7 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 	//RESUM
 	log("[+] RESUM");
 	log("  Potència contractada  [kW]: "+potCon[1]+"    "+potCon[2]+"    "+potCon[3]);
-	log("  Maxims potència        [kW]: "+maxim[1][fi]+"    "+maxim[2][fi]+"    "+maxim[3][fi]);
+	log("  Màxims potència        [kW]: "+maxim[1][fi]+"    "+maxim[2][fi]+"    "+maxim[3][fi]);
 	log("  Terme potència (fix) [eur]: "+term_poten[fi]);
 	log("  Energia consumida    [kWh]: "+energia[1][fi]+"    "+energia[2][fi]+"    "+energia[3][fi]);
 	log("  Terme energia  (var) [eur]: "+term_energ[fi]);
