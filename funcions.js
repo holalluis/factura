@@ -1,4 +1,10 @@
-//<body onload="init()">
+/*
+ *
+ *	Funcions principals de l'app
+ *
+ */
+
+//body onload="init()"
 function init() {
 	/*
 		TODO SETEJA VALORS DE COOKIES:
@@ -11,8 +17,12 @@ function init() {
 	*/
 	//processa la corba predefinida
 	//processa_corba();
+
+	//titol h1
+	qs('h1').innerHTML=document.title;
 }
 
+//funció principal per calcular la factura
 function processa_corba() 
 {
 	var valors = qs('#corba').value;
@@ -292,7 +302,7 @@ function processa_corba()
 	})
 }
 
-//detecta els dies festius d'un seguit de dates (array d'objectes 'Date')
+//detecta els dies festius a partir d'array d'objectes 'Date'
 function detecta_dies_festius(Dates) {
 	//Dates: array objectes Date
 	dies_festius=[];//array objectes de retorn
@@ -315,7 +325,7 @@ function detecta_dies_festius(Dates) {
 	};
 }
 
-//troba les dates de l'ultim diumenge de març i l'últim diumenge d'octubre
+//troba les dates de l'últim diumenge de març i l'últim diumenge d'octubre
 function detecta_canvi_hora(any) {
 	any=any||(new Date()).getFullYear();
 	//return
@@ -345,10 +355,11 @@ function detecta_canvi_hora(any) {
 //posa al html el canvi d'hora detectat
 function view_canvi_hora(any) {
 	var dies = detecta_canvi_hora(any);
-	qs('tr.canvi_horari #dia_inici').innerHTML=dies.mar+" de març de "+any;
-	qs('tr.canvi_horari #dia_final').innerHTML=dies.oct+" d'octubre de "+any;
+	qs('tr.canvi_horari #dia_inici').innerHTML=dies.mar+" de març de "+any+" 02:00 AM";
+	qs('tr.canvi_horari #dia_final').innerHTML=dies.oct+" d'octubre de "+any+" 02:00 AM";
 }
 
+//btn Clear
 function clearCorba() {
 	qs('#corba').value="";
 	qs('#titol').innerHTML="&mdash;";
@@ -361,35 +372,33 @@ function clearCorba() {
 	}
 }
 
+//btn [...] al resultat
 function veureDetall(){
 	var d=qs('#detall');
 	d.style.display=d.style.display==''?'none':'';
 }
 
+//drag and drop arxiu de text
 function handleFileSelect(evt)
 {
 	evt.stopPropagation();
 	evt.preventDefault();
 	var files = evt.dataTransfer.files; // FileList object.
-	// files is a FileList of File objects. List some properties.
-	for (var i = 0, f; f = files[i]; i++) 
-	{
+	//files is a FileList of File objects. List some properties.
+	for(var i=0,f;f=files[i];i++) {
 		var reader=new FileReader();
-		// Closure to capture the file information.
-		reader.onload = (function(arxiu) {
-			return function(e) 
-			{
+		//closure to capture the file information.
+		reader.onload=(function(arxiu){
+			return function(e){
 				var contingut=e.target.result;
 				document.getElementById('corba').value=contingut;
 				processa_corba()
 			};
 		})(f);
-		// Read in the image file as a data URL.
+		//read the file as text
 		reader.readAsText(f);
 	}
 }
 
-function pinta(evt,elem,color)
-{
-	elem.style.background=color;
-}
+//pinta de groc la textarea id=corba mentre fas drag and drop
+function pinta(evt,elem,color) { elem.style.background=color; }

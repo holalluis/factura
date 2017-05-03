@@ -1,8 +1,8 @@
 <!doctype html><html><head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-	<link rel="stylesheet" href="css.css">
 	<title>Calculadora factures tarifa 3.1A (Espanya)</title>
+	<link rel="stylesheet" href="css.css">
 	<script src="tarifa3.js"></script>
 	<script src="tou.js"></script>
 	<script src="festius.js"></script>
@@ -10,11 +10,11 @@
 	<script src="utils.js"></script>
 	<script src="cookies.js"></script>
 </head><body onload="init()">
-
-<div id=root><!--container-->
+<!--container-->
+<div id=root>
 
 <!--titol-->
-<h1 onclick="window.location.reload()" title="Torna a començar"><script>document.write(document.title)</script></h1>
+<h1 onclick="window.location.reload()" title="Torna a començar"></h1>
 
 <!--nota-->
 <div class=nota>
@@ -36,7 +36,8 @@
 
 <!--resultat i paràmetres tarifa-->
 <div id=contracte style="display:none">
-	<!--mes detectat--><div id=titol></div>
+	<!--mes detectat-->
+	<div id=titol></div>
 
 	<!--resultat factura calculada-->
 	<div id=resultat>
@@ -70,7 +71,7 @@
 		<tr><th>Lloguer (eur)  <td colspan=3><input placeholder="eur" value=50 id=tax_alq>
 		<tr><th>Impost elèctric<td colspan=3><input value=0.05113 id=tax_im2>
 		<tr><th>IVA            <td colspan=3><input value=0.21 id=tax_iva>
-
+		<!--dies festius-->
 		<tr id=dies_festius><th colspan=4 title="Els dies festius es cobren igual que els caps de setmana">
 			Possibles dies festius detectats (dd/mm)
 		</tr>
