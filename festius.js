@@ -21,11 +21,9 @@ var Festius = [
 //activa un dia festiu pel nom
 function activaFestiu(nom,nouValor) {
 	nouValor = parseInt(nouValor) ? 1 : 0;
-	for(var i in Festius)
-	{
+	for(var i in Festius) {
 		var festiu=Festius[i];
-		if(nom==festiu.nom)
-		{
+		if(nom==festiu.nom) {
 			festiu.activat=nouValor;
 			break;
 		}
