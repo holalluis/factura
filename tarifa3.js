@@ -209,17 +209,16 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 
 	//RESUM
 	log("[+] RESUM");
-	log("  Potència contr.       [kW]: "+potCon[1]+"    "+potCon[2]+"    "+potCon[3]);
-	log("  Maxim potencia        [kW]: "+maxim[1][fi]+"    "+maxim[2][fi]+"    "+maxim[3][fi]);
-	log("  Terme potencia (fix) [eur]: "+term_poten[fi]);
+	log("  Potència contractada  [kW]: "+potCon[1]+"    "+potCon[2]+"    "+potCon[3]);
+	log("  Maxims potència        [kW]: "+maxim[1][fi]+"    "+maxim[2][fi]+"    "+maxim[3][fi]);
+	log("  Terme potència (fix) [eur]: "+term_poten[fi]);
 	log("  Energia consumida    [kWh]: "+energia[1][fi]+"    "+energia[2][fi]+"    "+energia[3][fi]);
 	log("  Terme energia  (var) [eur]: "+term_energ[fi]);
-	log("  Compl. reactiva      [eur]: "+compl_reactiva[fi]);
+	log("  Complement reactiva  [eur]: "+compl_reactiva[fi]);
 	log("  Cost interrompib.    [eur]: "+coste_interr[fi]);
 	log("  Total sense IVA      [eur]: "+total_sense_iva[fi]);
 	log("  IVA                  [eur]: "+total_sense_iva[fi]*tax_iva);
 	log("  TOTAL + IVA          [eur]: "+total_amb_iva[fi]);
-	log("[TODO] falta el coste interrumpibilidad")
 
 	//empaquetar info d'interès en un objecte return
 	return {
