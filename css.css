@@ -42,9 +42,18 @@ textarea#corba {
 	cursor:pointer;
 }
 
-.botonera button {
-	padding:1em 6em;
+.botonera {
+	width:375px;
 	margin:auto;
+	display:flex;
+	flex-wrap:wrap;
+	justify-content:space-between;
+}
+
+.botonera button {
+	display:block;
+	padding:1em;
+	width:50%;
 }
 
 #titol {
@@ -82,7 +91,7 @@ textarea#corba {
 
 #footer {
 	font-family:monospace;
-	padding:0.5em;
+	padding:1em 0.5em;
 	margin-top:100px;
 	border-top:1px solid;
 	text-align:center;
