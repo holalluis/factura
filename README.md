@@ -15,7 +15,7 @@ Calcula la factura a partir de la corba horària (potència consumida cada hora 
 - L'eina permet jugar amb la potència contractada per veure quina és millor.
 - L'eina perment seguir l'evolució de la factura al llarg del mes.
 
-## Estat: alpha: funciona & en desenvolupament
+## Estat desenvolupament: funciona
 
 ## [STATUS] Tasques pendents
 
