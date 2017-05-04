@@ -12,6 +12,7 @@ h1{
 	font-size:22px;
 	font-weight:normal;
 	border-bottom:1px solid;
+	background:#f6f8fa;
 }
 
 table{border-collapse:collapse;margin:auto}
@@ -72,7 +73,7 @@ textarea#corba {
 }
 
 #contracte table th[colspan] {
-	background:#eaeaea;
+	background:#f6f8fa;
 	padding:0.7em;
 }
 

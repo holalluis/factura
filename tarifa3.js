@@ -235,7 +235,7 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 		"Terme energia (eur)":term_energ[fi],
 		"Complement energia reactiva (eur)":compl_reactiva[fi],
 		"Cost interrompibilitat (eur)":coste_interr[fi],
-		"IVA":total_sense_iva[fi]*tax_iva,
+		"IVA (eur)":total_sense_iva[fi]*tax_iva,
 		total:total_amb_iva[fi],
 	}
 }
