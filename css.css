@@ -62,9 +62,6 @@ textarea#corba {
 	border-bottom:1px solid ;
 }
 
-#contracte {
-	margin-bottom:100px;
-}
 #contracte table th[colspan] {
 	background:#eaeaea;
 	padding:0.7em;
@@ -86,7 +83,7 @@ textarea#corba {
 #footer {
 	font-family:monospace;
 	padding:0.5em;
-	margin-top:2em;
+	margin-top:100px;
 	border-top:1px solid;
 	text-align:center;
 }

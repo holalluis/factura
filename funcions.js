@@ -140,6 +140,9 @@ function processa_corba() {
 	}
 	log("[OK] S'ha creat l'array 'Dates' amb la propietat 'potKW' ("+Dates.length+")");
 
+	//ara que sabem l'any podem calcular els dies festius variables
+	detectaDivendresSant(d.any);
+
 	//posa a la web els canvis d'hora detectats a partir de l'any
 	view_canvi_hora(d.any);
 

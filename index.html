@@ -74,13 +74,13 @@
 			<td><input placeholder="eur/kWh" value=0.4 id=preus_energia_P2 onchange=updateCookies(this)>
 			<td><input placeholder="eur/kWh" value=0.3 id=preus_energia_P3 onchange=updateCookies(this)>
 		<tr><th colspan=4>Impostos
-		<tr><th>Lloguer (eur)  <td colspan=3><input placeholder="eur" value=50 id=tax_alq onchange=updateCookies(this)>
-		<tr><th>Impost elèctric<td colspan=3><input value=0.05113 id=tax_im2 onchange=updateCookies(this)>
-		<tr><th>IVA            <td colspan=3><input value=0.21 id=tax_iva onchange=updateCookies(this)>
+		<tr><th>Lloguer comptador (eur) <td colspan=3><input placeholder="eur" value=50 id=tax_alq onchange=updateCookies(this)>
+		<tr><th>Impost elèctric <td colspan=3><input value=0.05113 id=tax_im2 onchange=updateCookies(this)>
+		<tr><th>IVA <td colspan=3><input value=0.21 id=tax_iva onchange=updateCookies(this)>
 		
 		<!--dies festius-->
 		<tr id=dies_festius><th colspan=4 title="Els dies festius es cobren igual que els caps de setmana">
-			Possibles dies festius detectats (dd/mm)
+			Dies festius detectats (dd/mm)
 		</tr>
 		<!--aqui sota s'afegiran els dies festius detectats-->
 		<tr class=canvi_horari style=display:none 
@@ -98,8 +98,8 @@
 <!--footer-->
 <div id=footer>
 	ICRA 2017 &mdash;
-	Més info &rarr;
-	<a target=_blank href=festius.js>Festius a Espanya</a> |
-	<a target=_blank href=tou.js>Distribució horària de períodes tarifaris</a> |
+	<a target=_blank href=//github.com/holalluis/factura/blob/master/README.md>Quant a</a> ·
+	<a target=_blank href=festius.js>Festius a Espanya</a> ·
+	<a target=_blank href=tou.js>Distribució horària de períodes tarifaris</a> ·
 	<a target=_blank href="//github.com/holalluis/factura">Codi font (github)</a>
 </div>
