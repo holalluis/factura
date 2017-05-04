@@ -1,8 +1,9 @@
-/*array de dies festius*/
-
-// { mes <int>, dia <int>, activat <bool>, nom <string> }
-
-// nota: el camp 'activat' pot ser modificat per l'usuari
+/*
+	DIES FESTIUS
+	format: { mes<int>, dia<int>, activat<bool>, nom<string> }
+	nota: el camp 'activat' pot ser modificat per l'usuari
+	nota: el divendres sant s'ha de calcular depenent de l'any perquè és variable
+*/
 
 var Festius = [
 	{ mes:01, dia:01, activat:1, nom:"Any nou" },
@@ -18,15 +19,20 @@ var Festius = [
 	{ mes:12, dia:25, activat:1, nom:"Nadal" },
 ]
 
+/*Funcions per modificar els dies festius*/
+
 //activa un dia festiu pel nom
 function activaFestiu(nom,nouValor) {
-	nouValor = parseInt(nouValor) ? 1 : 0;
+	nouValor=parseInt(nouValor) ? 1 : 0;
 	for(var i in Festius) {
 		var festiu=Festius[i];
-		if(nom==festiu.nom) {
-			festiu.activat=nouValor;
-			break;
-		}
+		if(nom==festiu.nom) { festiu.activat=nouValor; break; }
 	}
 	log("Modificat dia festiu '"+nom+"' ("+nouValor+")");
+}
+
+function detectaDivendresSant(any)
+{
+	//El domingo de Pascua nunca puede caer ni antes del 22 de marzo ni después del 25 de abril.
+	//trobar el dia i el mes, i modificar Festius
 }

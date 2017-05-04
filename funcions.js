@@ -7,7 +7,7 @@
 //body onload="init()"
 function init() {
 	/*
-		TODO SETEJA VALORS DE COOKIES:
+		SETEJA VALORS DE COOKIES:
 			potencia contractada
 			preu potencia
 			preu energia
@@ -15,16 +15,31 @@ function init() {
 			impost electric
 			IVA
 	*/
-	//processa la corba predefinida
-	//processa_corba();
+	(function actualitzaValorsGuardats() {
+		[
+			'potCon_P1',        'potCon_P2',         'potCon_P3',
+			'preus_potencia_P1','preus_potencia_P2', 'preus_potencia_P3',
+			'preus_energia_P1', 'preus_energia_P2',  'preus_energia_P3',
+			'tax_alq',          'tax_im2',           'tax_iva'
+		].forEach(function(id){
+			var valor=getCookie(id);
+			if(valor){qs('#'+id).value=valor}
+		});
+	})();
+
+	//per debug: processa la corba predefinida -> processa_corba();
 
 	//titol h1
 	qs('h1').innerHTML=document.title;
 }
 
+function updateCookies(elem) {
+	setCookie(elem.id,elem.value);//"cookies.js"
+}
+
 //funció principal per calcular la factura
-function processa_corba() 
-{
+function processa_corba() {
+	//text escrit al textarea
 	var valors = qs('#corba').value;
 
 	//separa la corba per line breaks i filtra (elimina) linies buides
@@ -130,7 +145,6 @@ function processa_corba()
 
 	//comprova que les dates entrades son correctes -> aqui tenir en compte canvi horari
 	var canvis_hora = detecta_canvi_hora(d.any);
-
 	var canvi_hora_Mar=new Date(Date.UTC(d.any,2,canvis_hora.mar,2));
 	var canvi_hora_Oct=new Date(Date.UTC(d.any,9,canvis_hora.oct,2));
 
@@ -157,9 +171,9 @@ function processa_corba()
 
 		if(data.toUTCString()!=Dates[i].toUTCString())
 		{
-			err('[ERROR] Data incorrecta');
-			err("llegida: "+Dates[i].toUTCString());
-			err("generada:"+data.toUTCString());
+			err('[ERROR] Data incorrecta (linia '+i+')');
+			err("Data escrita: "+Dates[i].toUTCString());
+			err("Data generada:"+data.toUTCString());
 			return
 		}
 	}
@@ -199,7 +213,26 @@ function processa_corba()
 			if(data.periode!=0){continue;}
 
 			//laborable normal: comprova si es estiu o hivern 
-			var estiu = false; //TODO no se com es determina, si per mesos o per canvi d'hora BUSCAR
+			var estiu = (function() {
+				//La estación de verano a efectos del calendario eléctrico es el plazo comprendido entre el cambio de hora del último domingo de marzo y el cambio de hora del último domingo de octubre, siendo la de invierno la contraria.
+				if(data >= canvi_hora_Mar && data <= canvi_hora_Oct) {	
+					//l'hora repetida d'octubre ha de comptar com a hivern
+					if(i>0 && data.getUTCMonth()==9 && data.getTime()==Dates[i-1].getTime()){
+						//log(data.toUTCString()+' hivern')
+						return false; 
+					}
+					else {
+						//log(data.toUTCString()+' estiu')
+						return true; 
+					}
+				}
+				else {
+					//log(data.toUTCString()+' hivern')
+					return false; 
+				}
+			})();
+
+			//assigna el bloc pel dia laborable
 			if(estiu){data.periode=Tou.laborable.estiu[hora];}
 			else{     data.periode=Tou.laborable.hivern[hora];}
 		}
@@ -364,6 +397,7 @@ function clearCorba() {
 	qs('#corba').value="";
 	qs('#titol').innerHTML="&mdash;";
 	qs('#total_iva').innerHTML="0";
+	qs('#errors').innerHTML='';
 	//amaga dies festius
 	var trs_dies_festius=qsa('#taula tr.dia_festiu');
 	for(var i=0;i<trs_dies_festius.length;i++)

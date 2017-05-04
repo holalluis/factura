@@ -19,20 +19,26 @@
 <!--nota-->
 <div class=nota>
 	<b>Arrastra</b> un arxiu o <b>enganxa</b> la corba horària de potència d'un mes sencer. 
-	<a href="corbes_exemple/corbes.zip">Descarrega corbes horàries d'exemple</a>.
+	<a href="corbes_exemple/corbes.zip">Corbes horàries d'exemple</a>.
 	<div style="margin:9px">
-		<b>Nota</b>: els mesos de març i octubre tenen una hora menys i més respectivament degut al canvi d'hora.
+		<b>Nota</b>: els mesos de març i octubre tenen una hora menys i de més respectivament, degut al canvi d'hora.
 	</div>
 </div>
 
-<!--dades-->
-<textarea id=corba placeholder="Format corba horària: dd/mm/aaaa hh:MM kW" ondragover="pinta(event,this,'yellow')" ondrop="handleFileSelect(event);pinta(event,this,'white')"></textarea>
+<!--camp dades usuari-->
+<textarea id=corba 
+	placeholder="Format corba horària: dd/mm/aaaa hh:MM kW" 
+	ondragover="pinta(event,this,'yellow')" 
+	ondrop="handleFileSelect(event);pinta(event,this,'white')"></textarea>
 
 <!--botons neteja i processa factura-->
 <div class=botonera>
 	<button id=btn_neteja   onclick="clearCorba();">Clear</button>
 	<button id=btn_processa onclick="processa_corba();">Calcula factura</button>
 </div>
+
+<!--errors-->
+<div id=errors ondblclick=this.innerHTML='' title="Doble click per tancar l'error"></div>
 
 <!--resultat i paràmetres tarifa-->
 <div id=contracte style="display:none">
@@ -56,21 +62,22 @@
 		<tr><th colspan=4>Dades contracte
 		<tr><th>Període<th>P1 punta<th>P2 llano<th>P3 valle
 		<tr><th>Potència contractada (kW)
-			<td><input placeholder="kW" value=300 id=potCon_P1>
-			<td><input placeholder="kW" value=400 id=potCon_P2>
-			<td><input placeholder="kW" value=500 id=potCon_P3>
+			<td><input placeholder="kW" value=300 id=potCon_P1 onchange=updateCookies(this)>
+			<td><input placeholder="kW" value=400 id=potCon_P2 onchange=updateCookies(this)>
+			<td><input placeholder="kW" value=500 id=potCon_P3 onchange=updateCookies(this)>
 		<tr><th>Preu potència (eur/kW) 
-			<td><input placeholder="eur/kW" value=5 id=preus_potencia_P1>
-			<td><input placeholder="eur/kW" value=4 id=preus_potencia_P2>
-			<td><input placeholder="eur/kW" value=3 id=preus_potencia_P3>
+			<td><input placeholder="eur/kW" value=5 id=preus_potencia_P1 onchange=updateCookies(this)>
+			<td><input placeholder="eur/kW" value=4 id=preus_potencia_P2 onchange=updateCookies(this)>
+			<td><input placeholder="eur/kW" value=3 id=preus_potencia_P3 onchange=updateCookies(this)>
 		<tr><th>Preu energia (eur/kWh)
-			<td><input placeholder="eur/kWh" value=0.5 id=preus_energia_P1>
-			<td><input placeholder="eur/kWh" value=0.4 id=preus_energia_P2>
-			<td><input placeholder="eur/kWh" value=0.3 id=preus_energia_P3>
+			<td><input placeholder="eur/kWh" value=0.5 id=preus_energia_P1 onchange=updateCookies(this)>
+			<td><input placeholder="eur/kWh" value=0.4 id=preus_energia_P2 onchange=updateCookies(this)>
+			<td><input placeholder="eur/kWh" value=0.3 id=preus_energia_P3 onchange=updateCookies(this)>
 		<tr><th colspan=4>Impostos
-		<tr><th>Lloguer (eur)  <td colspan=3><input placeholder="eur" value=50 id=tax_alq>
-		<tr><th>Impost elèctric<td colspan=3><input value=0.05113 id=tax_im2>
-		<tr><th>IVA            <td colspan=3><input value=0.21 id=tax_iva>
+		<tr><th>Lloguer (eur)  <td colspan=3><input placeholder="eur" value=50 id=tax_alq onchange=updateCookies(this)>
+		<tr><th>Impost elèctric<td colspan=3><input value=0.05113 id=tax_im2 onchange=updateCookies(this)>
+		<tr><th>IVA            <td colspan=3><input value=0.21 id=tax_iva onchange=updateCookies(this)>
+		
 		<!--dies festius-->
 		<tr id=dies_festius><th colspan=4 title="Els dies festius es cobren igual que els caps de setmana">
 			Possibles dies festius detectats (dd/mm)
@@ -87,3 +94,12 @@
 	</table>
 </div id=contracte>
 </div id=root>
+
+<!--footer-->
+<div id=footer>
+	ICRA 2017 &mdash;
+	Més info &rarr;
+	<a target=_blank href=festius.js>Festius a Espanya</a> |
+	<a target=_blank href=tou.js>Distribució horària de períodes tarifaris</a> |
+	<a target=_blank href="//github.com/holalluis/factura">Codi font (github)</a>
+</div>

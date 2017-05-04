@@ -207,10 +207,12 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 	//ja hem acabat
 	var fi = temps.length-1; //index final
 
+	//data
+	var mes = temps[0].toUTCString().substring(8,16);
 	//RESUM
-	log("[+] RESUM");
+	log("[+] RESUM - "+mes);
 	log("  Potència contractada  [kW]: "+potCon[1]+"    "+potCon[2]+"    "+potCon[3]);
-	log("  Màxims potència        [kW]: "+maxim[1][fi]+"    "+maxim[2][fi]+"    "+maxim[3][fi]);
+	log("  Màxims potència       [kW]: "+maxim[1][fi]+"    "+maxim[2][fi]+"    "+maxim[3][fi]);
 	log("  Terme potència (fix) [eur]: "+term_poten[fi]);
 	log("  Energia consumida    [kWh]: "+energia[1][fi]+"    "+energia[2][fi]+"    "+energia[3][fi]);
 	log("  Terme energia  (var) [eur]: "+term_energ[fi]);
@@ -222,6 +224,7 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 
 	//empaquetar info d'interès en un objecte return
 	return {
+		"Mes":mes,
 		"Max P1 (kW)":maxim[1][fi],
 		"Max P2 (kW)":maxim[2][fi],
 		"Max P3 (kW)":maxim[3][fi],

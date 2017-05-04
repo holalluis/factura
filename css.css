@@ -29,10 +29,17 @@ th{font-weight:normal}
 	margin-bottom:10px;
 }
 
-#corba {
+textarea#corba {
 	width:375px;
 	height:150px;
 	font-family:monospace;
+}
+
+#errors {
+	margin-top:5px;
+	margin-bottom:5px;
+	background:red;
+	cursor:pointer;
 }
 
 .botonera button {
@@ -74,4 +81,12 @@ th{font-weight:normal}
 #taula{margin-top:5px}
 #taula input{
 	text-align:right;
+}
+
+#footer {
+	font-family:monospace;
+	padding:0.5em;
+	margin-top:2em;
+	border-top:1px solid;
+	text-align:center;
 }
