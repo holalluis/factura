@@ -195,7 +195,7 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 	var suma_termes = new Array();
 	for (var i=0; i<temps.length; i++)
 	{
-		suma_termes[i] = term_energ[i] + term_poten[i] + compl_reactiva[i];
+		suma_termes[i] = term_energ[i] + term_poten[i] + compl_reactiva[i] + coste_interr[i];
 	}
 
 	//aplica impostos
@@ -203,7 +203,7 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 	var total_sense_iva = new Array();
 	for (var i=0; i<temps.length; i++)
 	{
-		total_sense_iva[i] = suma_termes[i]*(1 + tax_im1 + tax_im2) + tax_alq + coste_interr[i];
+		total_sense_iva[i] = suma_termes[i]*(1 + tax_im1 + tax_im2) + tax_alq; //Base imposable
 		total_amb_iva[i] = total_sense_iva[i] * (parseFloat(1)+parseFloat(tax_iva));
 	}
 
