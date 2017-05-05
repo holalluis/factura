@@ -192,20 +192,16 @@ function processa_corba() {
 		//si es cap de setmana, assigna TOU festiu
 		var esCapDeSetmana=[0,6].indexOf(data.getUTCDay())+1;
 		var hora=data.getUTCHours(); //index de l'array de periodes
-		if(esCapDeSetmana)
-		{
+		if(esCapDeSetmana) {
 			data.periode=Tou.festiu[hora];
 		}
-		else//dies laborables
-		{
+		//dies laborables
+		else {
 			//comprova si el laborable es festiu
 			Festius.forEach(function(festiu){ //festiu{dia,mes,nom}
-				if(festiu.activat)
-				{
-					if(data.getUTCDate()==festiu.dia)
-					{
-						if(data.getUTCMonth()==(festiu.mes-1))
-						{
+				if(festiu.activat) {
+					if(data.getUTCDate()==festiu.dia) {
+						if(data.getUTCMonth()==(festiu.mes-1)) {
 							data.periode=Tou.festiu[hora];
 							//log("Festiu detectat "+data.toUTCString()+" periode: "+data.periode);
 						}
@@ -213,7 +209,7 @@ function processa_corba() {
 				}
 			});
 
-			if(data.periode!=0){continue;}
+			if(data.periode>0){continue;}
 
 			//laborable normal: comprova si es estiu o hivern 
 			var estiu = (function() {
@@ -400,6 +396,7 @@ function clearCorba() {
 	qs('#corba').value="";
 	qs('#titol').innerHTML="&mdash;";
 	qs('#total_iva').innerHTML="0";
+	qs('#detall').innerHTML="";
 	qs('#errors').innerHTML='';
 	//amaga dies festius
 	var trs_dies_festius=qsa('#taula tr.dia_festiu');

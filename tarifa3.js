@@ -184,7 +184,10 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 	var coste_interr=new Array();
 	for (var i=0; i<temps.length; i++)
 	{
-		coste_interr[i]=0;//TODO
+		coste_interr[i]=0;
+		coste_interr[i] += energia[1][i]*0.002235;
+		coste_interr[i] += energia[2][i]*0.002239;
+		coste_interr[i] += energia[3][i]*0.002229;
 	}
 
 	//5. COSTOS TOTALS
@@ -218,6 +221,7 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 	log("  Terme energia  (var) [eur]: "+term_energ[fi]);
 	log("  Complement reactiva  [eur]: "+compl_reactiva[fi]);
 	log("  Cost interrompib.    [eur]: "+coste_interr[fi]);
+	log("  Impost elèctric      [eur]: "+suma_termes[fi]*tax_im2);
 	log("  Total sense IVA      [eur]: "+total_sense_iva[fi]);
 	log("  IVA                  [eur]: "+total_sense_iva[fi]*tax_iva);
 	log("  TOTAL + IVA          [eur]: "+total_amb_iva[fi]);
