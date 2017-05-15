@@ -214,17 +214,18 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 	var mes = temps[0].toUTCString().substring(8,16);
 	//RESUM
 	log("[+] RESUM - "+mes);
-	log("  Potència contractada  [kW]: "+potCon[1]+" "+potCon[2]+" "+potCon[3]);
-	log("  Màxims potència       [kW]: "+maxim[1][fi]+" "+maxim[2][fi]+" "+maxim[3][fi]);
-	log("  Terme potència (fix) [eur]: "+term_poten[fi]);
-	log("  Energia consumida    [kWh]: "+energia[1][fi]+" "+energia[2][fi]+" "+energia[3][fi]);
-	log("  Terme energia  (var) [eur]: "+term_energ[fi]);
-	log("  Complement reactiva  [eur]: "+compl_reactiva[fi]);
-	log("  Cost interrompib.    [eur]: "+coste_interr[fi]);
-	log("  Impost elèctric      [eur]: "+suma_termes[fi]*tax_im2);
-	log("  Total sense IVA      [eur]: "+total_sense_iva[fi]);
-	log("  IVA                  [eur]: "+total_sense_iva[fi]*tax_iva);
-	log("  TOTAL + IVA          [eur]: "+total_amb_iva[fi]);
+	log("  Potència contractada   [kW]: "+potCon[1]+" "+potCon[2]+" "+potCon[3]);
+	log("  Màxims potència        [kW]: "+maxim[1][fi]+" "+maxim[2][fi]+" "+maxim[3][fi]);
+	log("  Terme potència (fix)  [eur]: "+term_poten[fi]);
+	log("  Energia consum. (Pn)  [kWh]: "+energia[1][fi]+" "+energia[2][fi]+" "+energia[3][fi]);
+	log("  Energia consum. total [kWh]: "+energia[1][fi]+" "+energia[2][fi]+" "+energia[3][fi]);
+	log("  Terme energia  (var)  [eur]: "+term_energ[fi]);
+	log("  Complement reactiva   [eur]: "+compl_reactiva[fi]);
+	log("  Cost interrompib.     [eur]: "+coste_interr[fi]);
+	log("  Impost elèctric       [eur]: "+suma_termes[fi]*tax_im2);
+	log("  Total sense IVA       [eur]: "+total_sense_iva[fi]);
+	log("  IVA                   [eur]: "+total_sense_iva[fi]*tax_iva);
+	log("  TOTAL + IVA           [eur]: "+total_amb_iva[fi]);
 
 	//empaquetar info d'interès en un objecte return
 	return {
@@ -236,6 +237,7 @@ function tarifa3(Dates,potCon,preus_potencia,preus_energia,impostos)
 		"Energia P1 (kWh)":energia[1][fi],
 		"Energia P2 (kWh)":energia[2][fi],
 		"Energia P3 (kWh)":energia[3][fi],
+		"Energia total (kWh)":(energia[1][fi]+energia[2][fi]+energia[3][fi]),
 		"Terme energia (eur)":term_energ[fi],
 		"Complement energia reactiva (eur)":compl_reactiva[fi],
 		"Cost interrompibilitat (eur)":coste_interr[fi],
