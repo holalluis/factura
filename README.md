@@ -19,11 +19,9 @@ Calcula la factura a partir de la corba horària (potència consumida cada hora 
 
 ## [STATUS] Tasques pendents
 
-- [NECESSARI] Posar últims preus com a valors per defecte.
-- [NECESSARI] Implementar cost interrumpibilidad a 'tarifa3.js'.
-- [  FUTUR  ] Poder canviar preus del coste interrumpibilidad a la taula principal.
-- [  FUTUR  ] Poder exportar tots els arrays de l'evolució de la factura al llarg del mes.
-- [  FUTUR  ] Complement reactiva afegir (primer llegir des del comptador).
+- [FUTUR] Canviar preus del coste interrumpibilidad a la taula principal.
+- [FUTUR] Exportar arrays evolució factura al llarg del mes.
+- [FUTUR] Afegir array per Complement reactiva (primer cal poder llegir des del comptador).
 
 ## Autor
 Lluís Bosch (lbosch@icra.cat), 2017, ICRA, projecte R3Water.

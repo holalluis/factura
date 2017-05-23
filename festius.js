@@ -40,7 +40,7 @@ function detectaDivendresSant(any) {
 		Además de dos constantes M y N, que para los años comprendidos entre 1900 y 2100 tomarán los valores 24 y 5 respectivamente. 
 		Llamaremos A al año del que queremos calcular la Pascua.
 	*/
-	if(any>20100){
+	if(any>2100){
 		err("[ERROR] No és possible detectar el divendres sant més enllà del 2100 (busca Computus a la wikipedia per més detalls)");
 		return;
 	}
