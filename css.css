@@ -96,4 +96,9 @@ textarea#corba {
 	margin-top:100px;
 	border-top:1px solid;
 	text-align:center;
+	background:linear-gradient(to bottom,#f6f8fa,white);
+}
+
+#total_iva {
+	font-size:45px;
 }

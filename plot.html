@@ -41,7 +41,7 @@
 		}
 	</script>
 	<style>
-		body {background:#eee}
+		body {background:#f1f1f1}
 		h1 {
 			text-align:center;
 		}
@@ -75,22 +75,22 @@
 		}
 	</style>
 </head><body>
-<!--titol--><h1>Plot corba potència (kW)</h1>
+<!--titol--><h1>Plot corba potència (kW) vs temps (d)</h1>
 
 <div id=root>
 	<!--input--> 
 	<div id=input>
 		<div> 
-			Enganxa el text aquí &darr; 
-			i apreta &rarr;
+			Enganxa dades &darr; 
+			i prem &rarr;
 			<button id=btn_plot onclick=drawChart()>Plot</button>
 		</div>
 		<!--TEXTAREA-->
-		<textarea id=dades onclick=this.select() placeholder="Format corba horària: dd/mm/aaaa hh:MM kW" rows=30 cols=70></textarea>
+		<textarea id=dades placeholder="Format: dd/mm/aaaa hh:MM kW" rows=30 cols=70></textarea>
 	</div>
 
 	<!--grafic-->
-	<div id=graph><div style=color:#ccc>Plot</div></div>
+	<div id=graph><div style=color:#aaa>Plot apareixerà aquí</div></div>
 </div id=root>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
