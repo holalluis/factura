@@ -1,0 +1,100 @@
+<!doctype html><html><head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Plot kW</title>
+	<script>
+		function drawChart() {
+			var valors=document.querySelector('#input #dades').value;
+			var linies=valors.split('\n').filter(function(n){return (n!="" && n!=" " && n!="	")});
+
+			//DATA array for chart
+			var DATA=[
+				['Temps', 'Potència (kW)'],
+				//[new Date('2017-01-01 00:00:00'), 20],
+			];
+
+			//processa linia per linia
+			for(var i=0;i<linies.length;i++) {
+				var d={};
+				var elements=linies[i].split(' ');
+				var dia=elements[0];
+				var hor=elements[1];
+				var pot=elements[2];
+				d.any=parseInt(dia.split('/')[2]);
+				d.mes=parseInt(dia.split('/')[1])-1; //gener=0,febrer=1,etc.
+				d.dia=parseInt(dia.split('/')[0]);
+				d.hor=parseInt(hor.split(':')[0]);
+				d.min=parseInt(hor.split(':')[1]);
+				DATA.push([new Date(d.any,d.mes,d.dia,d.hor,d.min), parseFloat(pot)]);
+			}
+			var data=google.visualization.arrayToDataTable(DATA);
+			var options={
+				title:'Corba horària (kW) vs temps',
+				vAxis:{title: 'kW',},
+				hAxis:{title: 'Temps',},
+				min:0,
+				colors:['blue','green','red','yellow','black','pink'],
+				legend:"bottom",
+			};
+			var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('graph'));
+			chart.draw(data,options);
+		}
+	</script>
+	<style>
+		body {background:#eee}
+		h1 {
+			text-align:center;
+		}
+		#root {
+			display:flex;
+			flex-wrap:wrap;
+			justify-content:center;
+		}
+		#input textarea#dades {
+			font-family:monospace;
+			outline:none;
+		}
+		#input, #graph {
+			background:white;
+			padding:0.2em;
+			border:1px solid #ccc;
+			margin:1px;
+			text-align:center;
+		}
+		#graph {
+			width:50%;
+		}
+		#btn_plot {
+			padding:1em 3em;
+			margin:2px;
+			border-radius:0.5em;
+			outline:none;
+			background:#fafafa;
+			border-width:1px;
+			font-size:22px;
+		}
+	</style>
+</head><body>
+<!--titol--><h1>Plot corba potència (kW)</h1>
+
+<div id=root>
+	<!--input--> 
+	<div id=input>
+		<div> 
+			Enganxa el text aquí &darr; 
+			i apreta &rarr;
+			<button id=btn_plot onclick=drawChart()>Plot</button>
+		</div>
+		<!--TEXTAREA-->
+		<textarea id=dades onclick=this.select() placeholder="Format corba horària: dd/mm/aaaa hh:MM kW" rows=30 cols=70></textarea>
+	</div>
+
+	<!--grafic-->
+	<div id=graph><div style=color:#ccc>Plot</div></div>
+</div id=root>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+	google.charts.load("current", {packages: ['annotatedtimeline']});
+	//google.charts.setOnLoadCallback(drawChart);
+</script>

@@ -119,8 +119,7 @@ function processa_corba() {
 
 	//genera un objecte Date per cada línia introduïda
 	var Dates=[]; //array objects Date
-	for(var i=0;i<linies.length;i++)
-	{
+	for(var i=0;i<linies.length;i++) {
 		var d={};
 		var elements=linies[i].split(' ');
 		var dia=elements[0];
