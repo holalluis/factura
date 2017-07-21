@@ -1,7 +1,7 @@
-<!doctype html><html><head>
+<!doctype html><html lang="ca"><head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-	<title>Calculadora Factura Tarifa 3.1A (Espanya)</title>
+	<title>Tarifa 3.1A</title>
 	<link rel="stylesheet" href="css.css">
 	<link rel="icon" href="img/icon.png" title="Tarifa 3.1A">
 	<script src="tarifa3.js"></script>
@@ -16,12 +16,19 @@
 <div id=root>
 
 <!--titol-->
-<h1 onclick="window.location.reload()" title="Torna a començar"></h1>
+<h1 onclick="window.location.reload()" title="Torna a començar">
+	Calculadora Factura Tarifa 3.1A
+</h1>
 
 <!--nota-->
 <div class=nota>
 	<b>Arrastra</b> un arxiu o <b>enganxa</b> la corba horària de potència d'un mes sencer. 
-	<a href="corbes_exemple/" target=_blank>Corbes horàries d'exemple</a>.
+	<div style="margin:9px">
+		<a href="#" onclick=carregaExemple()>Carrega corba horària exemple</a> ·
+		<a target=_blank href="corbes_exemple/">Descarrega exemples (txt)</a> ·
+		<a target=_blank href="plot.html">Plot</a> ·
+		<a target=_blank href="index.html">Nova pestanya</a>
+	</div>
 	<div style="margin:9px">
 		<b>Nota</b>: els mesos de març i octubre tenen una hora menys i de més respectivament, degut al canvi d'hora.
 	</div>
@@ -62,7 +69,7 @@
 	<table id=taula>
 		<!--linkar amb cookies mes endavant (amb javascript)-->
 		<tr><th colspan=4>Dades contracte
-		<tr><th>Període<th>P1 punta<th>P2 llano<th>P3 valle
+		<tr><th>Períodes<th>P1 punta<th>P2 llano<th>P3 valle
 		<tr><th>Potència contractada (kW)
 			<td><input placeholder="kW" value=290 id=potCon_P1 onchange=updateCookies(this)>
 			<td><input placeholder="kW" value=290 id=potCon_P2 onchange=updateCookies(this)>
@@ -99,10 +106,13 @@
 
 <!--footer-->
 <div id=footer>
-	ICRA 2017 ·
-	<a target=_blank href=plot.html>Plot</a> ·
-	<a target=_blank href="https://github.com/holalluis/factura/blob/master/README.md">Quant a</a> ·
-	<a target=_blank href="festius.js">Festius a Espanya</a> ·
-	<a target=_blank href="tou.js">Distribució horària de períodes tarifaris</a> ·
-	<a target=_blank href="https://github.com/holalluis/factura">Codi font (github)</a> ·
+	<div class=item>
+	</div>
+	<div class=item>
+		ICRA 2017 ·
+		<a target=_blank href="https://github.com/holalluis/factura/blob/master/README.md">Quant a</a> ·
+		<a target=_blank href="https://github.com/holalluis/factura">Codi font (github)</a> ·
+		<a target=_blank href="tou.js">Distribució horària de períodes tarifaris</a> ·
+		<a target=_blank href="festius.js">Festius a Espanya</a>
+	</div>
 </div>

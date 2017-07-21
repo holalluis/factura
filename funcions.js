@@ -27,10 +27,7 @@ function init() {
 		});
 	})();
 
-	//per debug: processa la corba predefinida -> processa_corba();
-
-	//titol h1
-	qs('h1').innerHTML=document.title;
+	//per debug: processa corba a init -> processa_corba();
 }
 
 function updateCookies(elem) {
@@ -76,6 +73,12 @@ function processa_corba() {
 		var titol=qs('#titol');
 		var innerHTML="&mdash; Període: <b>"+ini+"</b> a <b>"+fin+"</b> &mdash;";
 		titol.innerHTML=innerHTML;
+	})();
+
+	//canvia el <title></title> 
+	(function(){
+		var innerHTML=data_inici.toUTCString().substring(8,16)
+		document.title=innerHTML;
 	})();
 
 	//activa el menu pel canvi d'hora si és març o octubre
@@ -311,7 +314,7 @@ function processa_corba() {
 		//detecta el dia de la setmana que és el festiu
 		var dies=["Diumenge","Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte"];
 		var diaSetmana=(new Date(Date.UTC(detectats.any,festiu.mes-1,festiu.dia))).getUTCDay();
-		tr.innerHTML="<td>"+dies[diaSetmana]+"<td>"+festiu.dia+"/"+festiu.mes+"<td>"+festiu.nom
+		tr.innerHTML="<td>"+festiu.nom+"<td>"+dies[diaSetmana]+"<td>"+festiu.dia+"/"+festiu.mes;
 
 		var td=document.createElement('td');
 		tr.appendChild(td);
@@ -390,13 +393,29 @@ function view_canvi_hora(any) {
 	qs('tr.canvi_horari #dia_final').innerHTML=dies.oct+" d'octubre de "+any+" 02:00 AM";
 }
 
+//btn carrega exemple
+function carregaExemple(){
+	var f='corbes_exemple/corba_01_gen_2017.txt';
+	var xhr=new XMLHttpRequest();
+	xhr.open("GET",f,true);
+	xhr.onreadystatechange=function(){
+		if(xhr.readyState===XMLHttpRequest.DONE && xhr.status===200) {
+			qs('#corba').value=xhr.responseText;
+			//processa_corba();
+		}
+	}
+	xhr.send();
+}
+
 //btn Clear
 function clearCorba() {
 	qs('#corba').value="";
-	qs('#titol').innerHTML="&mdash;";
+	qs('#titol').innerHTML="Carrega una corba horària i prem 'Calcula factura'";
 	qs('#total_iva').innerHTML="0";
 	qs('#detall').innerHTML="";
+	qs('#detall').style.display='none';
 	qs('#errors').innerHTML='';
+	document.title='Tarifa 3.1A';
 	//amaga dies festius
 	var trs_dies_festius=qsa('#taula tr.dia_festiu');
 	for(var i=0;i<trs_dies_festius.length;i++)
