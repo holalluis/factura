@@ -36,6 +36,9 @@ function updateCookies(elem) {
 
 //funció principal per calcular la factura
 function processa_corba() {
+  //clear errors
+  qs('#errors').innerHTML="";
+
 	//text escrit al textarea
 	var valors = qs('#corba').value;
 
@@ -75,7 +78,7 @@ function processa_corba() {
 		titol.innerHTML=innerHTML;
 	})();
 
-	//canvia el <title></title> 
+	//canvia el <title></title>
 	(function(){
 		var innerHTML=data_inici.toUTCString().substring(8,16)
 		document.title=innerHTML;
@@ -114,8 +117,8 @@ function processa_corba() {
 	//warning si no coincideixen
 	if(hores!=linies.length)
 	{
-		err("[ERROR]: Hi hauria d'haver "+hores+" hores ("+hores/24+" dies)");
-		err("[ERROR]: Hi ha "+linies.length+" hores");
+		err("[ERROR]: Hi hauria d'haver "+hores+" hores (="+hores/24+" dies)");
+		err("Hi ha "+linies.length+" hores");
 		return;
 	}
 	else { log("[OK] Les hores coincideixen amb el nombre de línies ("+hores+")"); }
@@ -178,7 +181,7 @@ function processa_corba() {
 		{
 			err('[ERROR] Data incorrecta (linia '+i+')');
 			err("Data escrita: "+Dates[i].toUTCString());
-			err("Data generada:"+data.toUTCString());
+			err("Data correcta: "+data.toUTCString());
 			return
 		}
 	}
@@ -213,23 +216,23 @@ function processa_corba() {
 
 			if(data.periode>0){continue;}
 
-			//laborable normal: comprova si es estiu o hivern 
+			//laborable normal: comprova si es estiu o hivern
 			var estiu = (function() {
 				//La estación de verano a efectos del calendario eléctrico es el plazo comprendido entre el cambio de hora del último domingo de marzo y el cambio de hora del último domingo de octubre, siendo la de invierno la contraria.
-				if(data >= canvi_hora_Mar && data <= canvi_hora_Oct) {	
+				if(data >= canvi_hora_Mar && data <= canvi_hora_Oct) {
 					//l'hora repetida d'octubre ha de comptar com a hivern
 					if(i>0 && data.getUTCMonth()==9 && data.getTime()==Dates[i-1].getTime()){
 						//log(data.toUTCString()+' hivern')
-						return false; 
+						return false;
 					}
 					else {
 						//log(data.toUTCString()+' estiu')
-						return true; 
+						return true;
 					}
 				}
 				else {
 					//log(data.toUTCString()+' hivern')
-					return false; 
+					return false;
 				}
 			})();
 
@@ -275,11 +278,10 @@ function processa_corba() {
 
 	//Desglossa resultat al detall i posa al view
 	var detall=qs('#detall');
-	detall.innerHTML="<u>Detall factura</u>";//reset detall
+  detall.innerHTML="";
 	var ul=document.createElement('ul');
 	detall.appendChild(ul);
-	for(var camp in resultat)
-	{
+	for(var camp in resultat) {
 		var li=document.createElement('li');
 		ul.appendChild(li);
 		li.innerHTML=camp+": "+resultat[camp];
@@ -413,7 +415,7 @@ function clearCorba() {
 	qs('#titol').innerHTML="Carrega una corba horària i prem 'Calcula factura'";
 	qs('#total_iva').innerHTML="0";
 	qs('#detall').innerHTML="";
-	qs('#detall').style.display='none';
+	qs('#detall_container').style.display='none';
 	qs('#errors').innerHTML='';
 	document.title='Tarifa 3.1A';
 	//amaga dies festius
@@ -426,7 +428,7 @@ function clearCorba() {
 
 //btn [...] al resultat
 function veureDetall(){
-	var d=qs('#detall');
+	var d=qs('#detall_container');
 	d.style.display=d.style.display==''?'none':'';
 }
 

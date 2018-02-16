@@ -22,28 +22,28 @@
 
 <!--nota-->
 <div class=nota>
-	<b>Arrastra</b> un arxiu o <b>enganxa</b> la corba horària de potència d'un mes sencer. 
+	<b>Arrastra</b> un arxiu o <b>enganxa</b> la corba horària de potència d'un mes sencer.
 	<div style="margin:9px">
 		<a href="#" onclick=carregaExemple()>Carrega corba horària exemple</a> ·
 		<a target=_blank href="corbes_exemple/">Descarrega exemples (txt)</a> ·
-		<a target=_blank href="plot.html">Plot</a> ·
-		<a target=_blank href="index.html">Nova pestanya</a>
+		<a target=_blank href="plot.html">Plot</a>
 	</div>
-	<div style="margin:9px">
-		<b>Nota</b>: els mesos de març i octubre tenen una hora menys i de més respectivament, degut al canvi d'hora.
+	<div style="margin:9px;font-size:smaller">
+		<b>Nota</b>: degut al canvi d'hora, els mesos de març i d'octubre tenen una hora de menys i de més respectivament.
 	</div>
 </div>
 
 <!--camp dades usuari-->
-<textarea id=corba 
-	placeholder="Format corba horària: dd/mm/aaaa hh:MM kW" 
-	ondragover="pinta(event,this,'linear-gradient(to bottom,yellow,white)')" 
-	ondrop="handleFileSelect(event);pinta(event,this,'white')"></textarea>
+<textarea id=corba
+	placeholder="Format corba horària: dd/mm/aaaa hh:MM kW"
+	ondragover="pinta(event,this,'linear-gradient(to bottom,yellow,white)')"
+	ondrop="handleFileSelect(event);pinta(event,this,'white')">
+</textarea>
 
 <!--botons neteja i processa factura-->
 <div class=botonera>
-	<button id=btn_neteja onclick="clearCorba();">Clear</button>
-	<button id=btn_processa onclick="processa_corba();">Calcula factura</button>
+	<button id=btn_neteja onclick="clearCorba();">Esborra</button>
+	<button id=btn_processa onclick="processa_corba();">CALCULA FACTURA</button>
 </div>
 
 <!--errors-->
@@ -58,12 +58,18 @@
 	<div id=resultat>
 		<div>
 			Total + IVA: <b><span id=total_iva>0</span> eur</b>
-			<button id=btn_detall onclick="veureDetall()">...</button>
+			<button id=btn_detall onclick="veureDetall()">Veure detall</button>
 		</div>
 	</div>
 
 	<!--detalls factura calculada-->
-	<div id=detall style=display:none></div>
+	<div id=detall_container style="display:none">
+    <div style="padding:0.5em">
+      <u>Detall Factura</u>
+      <button onclick="qs('#detall_container').style.display='none'">X</button>
+    </div>
+    <div id=detall></div>
+  </div>
 
 	<!--taula potencia contractada, preus, impostos, festius, canvis horaris-->
 	<table id=taula>
@@ -74,7 +80,7 @@
 			<td><input placeholder="kW" value=290 id=potCon_P1 onchange=updateCookies(this)>
 			<td><input placeholder="kW" value=290 id=potCon_P2 onchange=updateCookies(this)>
 			<td><input placeholder="kW" value=290 id=potCon_P3 onchange=updateCookies(this)>
-		<tr><th>Preu potència (eur/kW) 
+		<tr><th>Preu potència (eur/kW)
 			<td><input placeholder="eur/kW" value=4.931122 id=preus_potencia_P1 onchange=updateCookies(this)>
 			<td><input placeholder="eur/kW" value=3.040891 id=preus_potencia_P2 onchange=updateCookies(this)>
 			<td><input placeholder="eur/kW" value=0.697311 id=preus_potencia_P3 onchange=updateCookies(this)>
@@ -86,13 +92,14 @@
 		<tr><th>Lloguer comptador (eur) <td colspan=3><input placeholder="eur" value=29.53 id=tax_alq onchange=updateCookies(this)>
 		<tr><th>Impost elèctric <td colspan=3><input value=0.0511269632 id=tax_im2 onchange=updateCookies(this)>
 		<tr><th>IVA <td colspan=3><input value=0.21 id=tax_iva onchange=updateCookies(this)>
-		
+
 		<!--dies festius-->
 		<tr id=dies_festius><th colspan=4 title="Els dies festius es cobren igual que els caps de setmana">
 			Dies festius detectats (dd/mm)
 		</tr>
+
 		<!--aqui sota s'afegiran els dies festius detectats-->
-		<tr class=canvi_horari style=display:none 
+		<tr class=canvi_horari style=display:none
 			title="El canvi d'hora suposa tenir una hora més o una hora menys a facturar durant aquell mes">
 			<th colspan=4>Canvi d'hora detectat (només març i octubre)
 		</tr>
@@ -101,15 +108,16 @@
 			<th>Final<td id=dia_final>
 		</tr>
 	</table>
-</div id=contracte>
-</div id=root>
+</div #contracte>
+</div #root>
 
 <!--footer-->
 <div id=footer>
+	<div class=item></div>
 	<div class=item>
-	</div>
-	<div class=item>
-		ICRA 2017 ·
+		InnoWatt by
+    <a target=_blank href="http://icra.cat/">ICRA</a>
+    <script>document.write((new Date()).getFullYear())</script> ·
 		<a target=_blank href="https://github.com/holalluis/factura/blob/master/README.md">Quant a</a> ·
 		<a target=_blank href="https://github.com/holalluis/factura">Codi font (github)</a> ·
 		<a target=_blank href="tou.js">Distribució horària de períodes tarifaris</a> ·
