@@ -62,52 +62,56 @@
 		</div>
 	</div>
 
-	<!--detalls factura calculada-->
-	<div id=detall_container style="display:none">
-    <div style="padding:0.5em">
-      <u>Detall Factura</u>
-      <button onclick="qs('#detall_container').style.display='none'">X</button>
+  <!--contracte i detall factura-->
+  <div class=flex>
+    <!--taula potencia contractada, preus, impostos, festius, canvis horaris-->
+    <table id=taula>
+      <!--linkar amb cookies mes endavant (amb javascript)-->
+      <tr><th colspan=4>Dades contracte
+      <tr><th>Períodes<th>P1 punta<th>P2 llano<th>P3 valle
+      <tr><th>Potència contractada (kW)
+        <td><input type=number placeholder="kW" value=290 id=potCon_P1 onchange=updateCookies(this)>
+        <td><input type=number placeholder="kW" value=290 id=potCon_P2 onchange=updateCookies(this)>
+        <td><input type=number placeholder="kW" value=290 id=potCon_P3 onchange=updateCookies(this)>
+      <tr><th>Preu potència (eur/kW)
+        <td><input type=number placeholder="eur/kW" value=4.931122 id=preus_potencia_P1 onchange=updateCookies(this)>
+        <td><input type=number placeholder="eur/kW" value=3.040891 id=preus_potencia_P2 onchange=updateCookies(this)>
+        <td><input type=number placeholder="eur/kW" value=0.697311 id=preus_potencia_P3 onchange=updateCookies(this)>
+      <tr><th>Preu energia (eur/kWh)
+        <td><input type=number placeholder="eur/kWh" value=0.092413 id=preus_energia_P1 onchange=updateCookies(this)>
+        <td><input type=number placeholder="eur/kWh" value=0.082492 id=preus_energia_P2 onchange=updateCookies(this)>
+        <td><input type=number placeholder="eur/kWh" value=0.059532 id=preus_energia_P3 onchange=updateCookies(this)>
+      <tr><th colspan=4>Impostos
+      <tr><th>Lloguer comptador (eur) <td colspan=3><input type=number placeholder="eur" value=29.53 id=tax_alq onchange=updateCookies(this)>
+      <tr><th>Impost elèctric <td colspan=3><input type=number value=0.0511269632 id=tax_im2 onchange=updateCookies(this)>
+      <tr><th>IVA <td colspan=3><input type=number value=0.21 id=tax_iva onchange=updateCookies(this)>
+
+      <!--dies festius-->
+      <tr id=dies_festius><th colspan=4 title="Els dies festius es cobren igual que els caps de setmana">
+        Dies festius detectats (dd/mm)
+      </tr>
+
+      <!--aqui sota s'afegiran els dies festius detectats-->
+      <tr class=canvi_horari style=display:none
+        title="El canvi d'hora suposa tenir una hora més o una hora menys a facturar durant aquell mes">
+        <th colspan=4>Canvi d'hora detectat (només març i octubre)
+      </tr>
+      <tr class=canvi_horari style=display:none>
+        <th>Inici<td id=dia_inici>
+        <th>Final<td id=dia_final>
+      </tr>
+    </table>
+
+    <!--detalls factura-->
+    <div id=detall_container style="display:none">
+      <div>
+        <u>Detall Factura</u>
+        <button onclick="qs('#detall_container').style.display='none'">X</button>
+      </div>
+      <div id=detall></div>
     </div>
-    <div id=detall></div>
+
   </div>
-
-	<!--taula potencia contractada, preus, impostos, festius, canvis horaris-->
-	<table id=taula>
-		<!--linkar amb cookies mes endavant (amb javascript)-->
-		<tr><th colspan=4>Dades contracte
-		<tr><th>Períodes<th>P1 punta<th>P2 llano<th>P3 valle
-		<tr><th>Potència contractada (kW)
-			<td><input type=number placeholder="kW" value=290 id=potCon_P1 onchange=updateCookies(this)>
-			<td><input type=number placeholder="kW" value=290 id=potCon_P2 onchange=updateCookies(this)>
-			<td><input type=number placeholder="kW" value=290 id=potCon_P3 onchange=updateCookies(this)>
-		<tr><th>Preu potència (eur/kW)
-			<td><input type=number placeholder="eur/kW" value=4.931122 id=preus_potencia_P1 onchange=updateCookies(this)>
-			<td><input type=number placeholder="eur/kW" value=3.040891 id=preus_potencia_P2 onchange=updateCookies(this)>
-			<td><input type=number placeholder="eur/kW" value=0.697311 id=preus_potencia_P3 onchange=updateCookies(this)>
-		<tr><th>Preu energia (eur/kWh)
-			<td><input type=number placeholder="eur/kWh" value=0.092413 id=preus_energia_P1 onchange=updateCookies(this)>
-			<td><input type=number placeholder="eur/kWh" value=0.082492 id=preus_energia_P2 onchange=updateCookies(this)>
-			<td><input type=number placeholder="eur/kWh" value=0.059532 id=preus_energia_P3 onchange=updateCookies(this)>
-		<tr><th colspan=4>Impostos
-		<tr><th>Lloguer comptador (eur) <td colspan=3><input type=number placeholder="eur" value=29.53 id=tax_alq onchange=updateCookies(this)>
-		<tr><th>Impost elèctric <td colspan=3><input type=number value=0.0511269632 id=tax_im2 onchange=updateCookies(this)>
-		<tr><th>IVA <td colspan=3><input type=number value=0.21 id=tax_iva onchange=updateCookies(this)>
-
-		<!--dies festius-->
-		<tr id=dies_festius><th colspan=4 title="Els dies festius es cobren igual que els caps de setmana">
-			Dies festius detectats (dd/mm)
-		</tr>
-
-		<!--aqui sota s'afegiran els dies festius detectats-->
-		<tr class=canvi_horari style=display:none
-			title="El canvi d'hora suposa tenir una hora més o una hora menys a facturar durant aquell mes">
-			<th colspan=4>Canvi d'hora detectat (només març i octubre)
-		</tr>
-		<tr class=canvi_horari style=display:none>
-			<th>Inici<td id=dia_inici>
-			<th>Final<td id=dia_final>
-		</tr>
-	</table>
 </div #contracte>
 </div #root>
 
@@ -115,12 +119,15 @@
 <div id=footer>
 	<div class=item></div>
 	<div class=item>
-		<a target=_blank href="///innowatt.io">InnoWatt</a>
-    by
-    <a target=_blank href="///icra.cat/">ICRA</a> |
-    <script>document.write((new Date()).getFullYear())</script> |
+		<a target=_blank href="///innowatt.io">InnoWatt</a> |
+    <a target=_blank href="///icra.cat/">
+      ICRA
+      <script>document.write((new Date()).getFullYear())</script></a>
+    |
 		<a target=_blank href="///github.com/holalluis/factura/blob/master/README.md">Quant a</a> |
 		<a target=_blank href="///github.com/holalluis/factura">Codi font</a> |
+    <a target=_blank href="///icra.cat/nota-legal">Avís legal</a> |
+    <br>
 		<a target=_blank href="tou.js">Distribució horària períodes tarifaris</a> |
 		<a target=_blank href="festius.js">Festius a Espanya</a>
 	</div>
