@@ -16,7 +16,7 @@ h1{
 }
 
 table{border-collapse:collapse;margin:auto}
-th,td{border:1px solid #ccc;padding:0.3em}
+th,td{border:1px solid #ccc;}
 th{font-weight:normal}
 
 .flex {
@@ -90,7 +90,6 @@ textarea#corba {
 	margin-top:5px;
 }
 #taula th,td{
-	padding:0.6em;
 }
 #taula th[colspan] {
 	background:#f6f8fa;
@@ -103,7 +102,7 @@ textarea#corba {
 #taula td{
 	text-align:left;
 }
-#taula input{
+#taula input[type=number]{
 	text-align:right;
 }
 

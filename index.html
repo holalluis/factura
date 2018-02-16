@@ -24,7 +24,7 @@
 <div class=nota>
 	<b>Arrastra</b> un arxiu o <b>enganxa</b> la corba horària (kW) d'un mes sencer.
   <p style="font-size:smaller">
-    <b>Nota</b>: recorda que degut al canvi d'hora, els mesos de març i d'octubre tenen una hora de menys i de més respectivament.
+    Recorda que degut al canvi d'hora, els mesos de març i d'octubre tenen una hora de menys i de més respectivament.
   </p>
 	<p>
 		<a href="#" onclick=carregaExemple()>Carrega corba horària exemple</a> ·
@@ -77,21 +77,21 @@
 		<tr><th colspan=4>Dades contracte
 		<tr><th>Períodes<th>P1 punta<th>P2 llano<th>P3 valle
 		<tr><th>Potència contractada (kW)
-			<td><input placeholder="kW" value=290 id=potCon_P1 onchange=updateCookies(this)>
-			<td><input placeholder="kW" value=290 id=potCon_P2 onchange=updateCookies(this)>
-			<td><input placeholder="kW" value=290 id=potCon_P3 onchange=updateCookies(this)>
+			<td><input type=number placeholder="kW" value=290 id=potCon_P1 onchange=updateCookies(this)>
+			<td><input type=number placeholder="kW" value=290 id=potCon_P2 onchange=updateCookies(this)>
+			<td><input type=number placeholder="kW" value=290 id=potCon_P3 onchange=updateCookies(this)>
 		<tr><th>Preu potència (eur/kW)
-			<td><input placeholder="eur/kW" value=4.931122 id=preus_potencia_P1 onchange=updateCookies(this)>
-			<td><input placeholder="eur/kW" value=3.040891 id=preus_potencia_P2 onchange=updateCookies(this)>
-			<td><input placeholder="eur/kW" value=0.697311 id=preus_potencia_P3 onchange=updateCookies(this)>
+			<td><input type=number placeholder="eur/kW" value=4.931122 id=preus_potencia_P1 onchange=updateCookies(this)>
+			<td><input type=number placeholder="eur/kW" value=3.040891 id=preus_potencia_P2 onchange=updateCookies(this)>
+			<td><input type=number placeholder="eur/kW" value=0.697311 id=preus_potencia_P3 onchange=updateCookies(this)>
 		<tr><th>Preu energia (eur/kWh)
-			<td><input placeholder="eur/kWh" value=0.092413 id=preus_energia_P1 onchange=updateCookies(this)>
-			<td><input placeholder="eur/kWh" value=0.082492 id=preus_energia_P2 onchange=updateCookies(this)>
-			<td><input placeholder="eur/kWh" value=0.059532 id=preus_energia_P3 onchange=updateCookies(this)>
+			<td><input type=number placeholder="eur/kWh" value=0.092413 id=preus_energia_P1 onchange=updateCookies(this)>
+			<td><input type=number placeholder="eur/kWh" value=0.082492 id=preus_energia_P2 onchange=updateCookies(this)>
+			<td><input type=number placeholder="eur/kWh" value=0.059532 id=preus_energia_P3 onchange=updateCookies(this)>
 		<tr><th colspan=4>Impostos
-		<tr><th>Lloguer comptador (eur) <td colspan=3><input placeholder="eur" value=29.53 id=tax_alq onchange=updateCookies(this)>
-		<tr><th>Impost elèctric <td colspan=3><input value=0.0511269632 id=tax_im2 onchange=updateCookies(this)>
-		<tr><th>IVA <td colspan=3><input value=0.21 id=tax_iva onchange=updateCookies(this)>
+		<tr><th>Lloguer comptador (eur) <td colspan=3><input type=number placeholder="eur" value=29.53 id=tax_alq onchange=updateCookies(this)>
+		<tr><th>Impost elèctric <td colspan=3><input type=number value=0.0511269632 id=tax_im2 onchange=updateCookies(this)>
+		<tr><th>IVA <td colspan=3><input type=number value=0.21 id=tax_iva onchange=updateCookies(this)>
 
 		<!--dies festius-->
 		<tr id=dies_festius><th colspan=4 title="Els dies festius es cobren igual que els caps de setmana">
