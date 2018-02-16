@@ -37,7 +37,7 @@ th{font-weight:normal}
 
 textarea#corba {
 	width:370px;
-	height:229px;
+	height:150px;
 	font-family:monospace;
   display:block;
   margin:auto;
@@ -110,7 +110,7 @@ textarea#corba {
 #footer {
 	font-family:monospace;
 	padding:1em 0.5em;
-	margin-top:20px;
+	margin-top:1em;
 	border-top:1px solid;
 	text-align:center;
 	background:linear-gradient(to bottom,#f6f8fa,white);

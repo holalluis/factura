@@ -17,20 +17,20 @@
 
 <!--titol-->
 <h1 onclick="window.location.reload()" title="Torna a començar">
-	Calculadora Factura Tarifa 3.1A
+	Calcula factura tarifa 3.1A
 </h1>
 
 <!--nota-->
 <div class=nota>
-	<b>Arrastra</b> un arxiu o <b>enganxa</b> la corba horària de potència d'un mes sencer.
-	<div style="margin:9px">
+	<b>Arrastra</b> un arxiu o <b>enganxa</b> la corba horària (kW) d'un mes sencer.
+  <p style="font-size:smaller">
+    <b>Nota</b>: recorda que degut al canvi d'hora, els mesos de març i d'octubre tenen una hora de menys i de més respectivament.
+  </p>
+	<p>
 		<a href="#" onclick=carregaExemple()>Carrega corba horària exemple</a> ·
-		<a target=_blank href="corbes_exemple/">Descarrega exemples (txt)</a> ·
+		<a target=_blank href="corbes_exemple/">Veure exemples (arxius txt)</a> ·
 		<a target=_blank href="plot.html">Plot</a>
-	</div>
-	<div style="margin:9px;font-size:smaller">
-		<b>Nota</b>: degut al canvi d'hora, els mesos de març i d'octubre tenen una hora de menys i de més respectivament.
-	</div>
+	</p>
 </div>
 
 <!--camp dades usuari-->
@@ -115,12 +115,13 @@
 <div id=footer>
 	<div class=item></div>
 	<div class=item>
-		InnoWatt by
-    <a target=_blank href="http://icra.cat/">ICRA</a>
-    <script>document.write((new Date()).getFullYear())</script> ·
-		<a target=_blank href="https://github.com/holalluis/factura/blob/master/README.md">Quant a</a> ·
-		<a target=_blank href="https://github.com/holalluis/factura">Codi font (github)</a> ·
-		<a target=_blank href="tou.js">Distribució horària de períodes tarifaris</a> ·
+		<a target=_blank href="///innowatt.io">InnoWatt</a>
+    by
+    <a target=_blank href="///icra.cat/">ICRA</a> |
+    <script>document.write((new Date()).getFullYear())</script> |
+		<a target=_blank href="///github.com/holalluis/factura/blob/master/README.md">Quant a</a> |
+		<a target=_blank href="///github.com/holalluis/factura">Codi font</a> |
+		<a target=_blank href="tou.js">Distribució horària períodes tarifaris</a> |
 		<a target=_blank href="festius.js">Festius a Espanya</a>
 	</div>
 </div>
