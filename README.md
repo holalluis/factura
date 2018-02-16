@@ -1,5 +1,4 @@
 # Calculadora factures tarifa 3.1A (Espanya)
-
 Calcula la factura a partir de la corba horària (potència consumida cada hora en kW).
 
 ## Característiques
@@ -18,9 +17,8 @@ Calcula la factura a partir de la corba horària (potència consumida cada hora 
 ## Estat desenvolupament: funciona
 
 ## [STATUS] Tasques pendents
-
-- [FUTUR] Canviar preus del coste interrumpibilidad a la taula principal.
-- [FUTUR] Exportar arrays evolució factura al llarg del mes.
+- [FUTUR] Poder canviar preus del coste interrumpibilidad a la taula principal.
+- [FUTUR] Poder exportar arrays evolució factura al llarg del mes.
 - [FUTUR] Afegir array per Complement reactiva (primer cal poder llegir des del comptador).
 
 ## Autor

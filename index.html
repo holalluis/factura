@@ -4,6 +4,7 @@
 	<title>Tarifa 3.1A</title>
 	<link rel="stylesheet" href="css.css">
 	<link rel="icon" href="img/icon.png" title="Tarifa 3.1A">
+  <!--app-->
 	<script src="tarifa3.js"></script>
 	<script src="tou.js"></script>
 	<script src="festius.js"></script>
@@ -16,7 +17,7 @@
 <div id=root>
 
 <!--titol-->
-<h1 onclick="window.location.reload()" title="Torna a començar">
+<h1 onclick="window.location.reload(true)" title="Recarrega la pàgina">
 	Calcula factura tarifa 3.1A
 </h1>
 
@@ -24,7 +25,8 @@
 <div class=nota>
 	<b>Arrastra</b> un arxiu o <b>enganxa</b> la corba horària (kW) d'un mes sencer.
   <p style="font-size:smaller">
-    Recorda que degut al canvi d'hora, els mesos de març i d'octubre tenen una hora de menys i de més respectivament.
+    Recorda que degut al canvi d'hora, els mesos de març i d'octubre tenen una
+    hora de menys i de més respectivament.
   </p>
 	<p>
 		<a href="#" onclick=carregaExemple()>Carrega corba horària exemple</a> ·
@@ -82,9 +84,12 @@
         <td><input type=number placeholder="eur/kWh" value=0.082492 id=preus_energia_P2 onchange=updateCookies(this)>
         <td><input type=number placeholder="eur/kWh" value=0.059532 id=preus_energia_P3 onchange=updateCookies(this)>
       <tr><th colspan=4>Impostos
-      <tr><th>Lloguer comptador (eur) <td colspan=3><input type=number placeholder="eur" value=29.53 id=tax_alq onchange=updateCookies(this)>
-      <tr><th>Impost elèctric <td colspan=3><input type=number value=0.0511269632 id=tax_im2 onchange=updateCookies(this)>
-      <tr><th>IVA <td colspan=3><input type=number value=0.21 id=tax_iva onchange=updateCookies(this)>
+      <tr><th>Lloguer comptador (eur)
+        <td colspan=3><input type=number placeholder="eur" value=29.53 id=tax_alq onchange=updateCookies(this)>
+      <tr><th>Impost elèctric
+        <td colspan=3><input type=number value=0.0511269632 id=tax_im2 onchange=updateCookies(this)>
+      <tr><th>IVA
+        <td colspan=3><input type=number value=0.21 id=tax_iva onchange=updateCookies(this)>
 
       <!--dies festius-->
       <tr id=dies_festius><th colspan=4 title="Els dies festius es cobren igual que els caps de setmana">
@@ -110,10 +115,8 @@
       </div>
       <div id=detall></div>
     </div>
-
-  </div>
+  </div .flex>
 </div #contracte>
-</div #root>
 
 <!--footer-->
 <div id=footer>
