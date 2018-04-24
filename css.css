@@ -1,9 +1,13 @@
 /**CSS simple pre-UX/UI*/
+
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:300,400,700');
+
 body{
 	margin:0 auto;
 	overflow-y:scroll;
 	font-size:13px;
-	font-family:verdana;
+	font-family: 'Roboto', verdana;
+	color: #5C5C5C;
 }
 
 h1{
@@ -11,10 +15,25 @@ h1{
 	padding:0.5em;
 	font-size:22px;
 	font-weight:normal;
-  background: linear-gradient(to left, #9DDACD 0%, #009B8E 100%);
-  color:white;
+	background: linear-gradient(to left, #9DDACD 0%, #009B8E 100%);
+	color:white;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 1.2px;
+	line-height: 120px;
+	margin-bottom: 100px;
+
 }
 
+a {
+	font-family: 'Roboto', verdana;
+	color: #11998C;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #5C5C5C;
+}
 table{border-collapse:collapse;display:block;margin:auto}
 th,td{border:1px solid #ccc;}
 th{font-weight:normal}
@@ -22,6 +41,7 @@ th{font-weight:normal}
 .flex{
 	display:flex;
 	flex-wrap:wrap;
+	margin-bottom: 50px;
 }
 
 [onclick]{cursor:pointer}
@@ -30,24 +50,75 @@ th{font-weight:normal}
 	text-align:center;
 }
 
+p {
+	font-size: 16px;
+	margin-bottom: 25px;
+	line-height: 19.2px;
+	font-weight: 300;
+}
+
 .nota {
-	font-family:monospace;
-	margin-bottom:10px;
+	font-size: 20px;
+	font-weight: 300;
+	line-height: 24px;
+}
+
+.nota p:last-of-type {
+	margin-top: 50px;
+}
+
+.nota b {
+	font-weight: 700;
 }
 
 textarea#corba {
-	width:370px;
 	height:150px;
-	font-family:monospace;
-  display:block;
-  margin:auto;
+	font-family: 'Roboto Mono', monospace;
+	display:block;
+	margin:auto;
+	background-color: #F5F5F5;
+	border: 0px;
+	border-top: 25px solid #5C5C5C;
+	border-radius: 2.5px;
+	padding: 5px;
+	box-shadow: 1px 1px 5px #B6B6B6;
+	color: #5C5C5C;
+	margin-bottom: 25px;
+	width: 500px;
+	animation: startconsole 1s normal forwards ease;
+	animation-delay: 0.2s;
+	
+	position: relative;
+
+	top: -25px;
+	opacity: 0;
+
+}
+@keyframes startconsole {
+    from { 
+    	top: -25px; 
+    	opacity: 0;
+    }
+    to {
+    	top: 0px; 
+    	opacity: 1;
+    }
 }
 
 #errors {
 	margin-top:5px;
 	margin-bottom:5px;
-	background:red;
+	background:#b53037;
 	cursor:pointer;
+	
+	color: white;
+	font-family: 'Roboto', verdana;
+	font-size: 16px;
+	font-weight: 300;
+}
+
+#errors > div {
+	padding: 25px;
 }
 
 .botonera {
@@ -55,38 +126,139 @@ textarea#corba {
 	display:flex;
 	flex-wrap:wrap;
 	justify-content:center;
+	max-width: 500px;
 }
 
 .botonera button {
-	display:block;
+	display: inline-block;
 	padding:1em;
-	width:188px;
+
+	position: relative;
+	vertical-align: middle;
+	color: #11998C;
+	text-align: center;
+	transition: 0.5s;
+	cursor: pointer;
+	border: 0px;
+	border-bottom: 2px solid #11998C;
+	text-transform: uppercase;
+	font-family: "Roboto", verdana;
+	font-size: 13px;
+	letter-spacing: 1.2px;
+	background-color: transparent;
+	border-style: solid;
+	box-sizing: border-box;
+	margin-top: 25px;
+	margin-bottom: 25px;
+
+	flex: 1;
+}
+
+.botonera button:first-of-type {
+	margin-right: 25px;
+}
+
+.botonera button:last-of-type {
+	margin-left: 25px;
+}
+
+.botonera button::before {
+	transition-property: height, width;
+	transition-duration: 0.25s, 0.25s;
+	transition-delay: 0s, 0.25s;
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	border-right: 2px solid transparent;
+	border-top: 2px solid transparent;
+	content: "";
+	height: 0%;
+	width: 0%;
+	box-sizing: border-box;
+}
+
+.botonera button:hover::before {
+	border-top: 2px solid #11998C;
+	border-right: 2px solid #11998C;
+	height: 100%;
+	width: 100%;
+}
+
+.botonera button::after {
+	transition-property: height, width;
+	transition-duration: 0.25s, 0.25s;
+	transition-delay: 0s, 0.25s;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	border-top: 2px solid transparent;
+	border-left: 2px solid transparent;
+	content: "";
+	width: 0%;
+	height: 0%;
+	box-sizing: border-box;
+}
+
+.botonera button:hover::after {
+	border-top: 2px solid #11998C;
+	border-left: 2px solid #11998C;
+	width: 100%;
+	height: 100%;
 }
 
 #titol {
-	background:#f6f8fa;
-	border-top:1px solid;
+	background: #F5F5F5;
 	font-size:18px;
 	margin-top:5px;
 	padding:0.5em;
+	margin-top: 50px;
+	font-weight: 300;
+}
+
+#btn_detall {
+	font-size: 16px;
+	line-height: 19.2px;
+	font-weight: 300;
+	font-family: 'Roboto', verdana;
+	background: none;
+	border: none;
+	color: white;
+	cursor: pointer;
+}
+
+#titol b {
+	font-weight: 700;
 }
 
 #resultat {
 	font-size:18px;
 	padding:0.5em;
-  background:linear-gradient(to left, #9DDACD 0%, #009B8E 100%);
+  	background:linear-gradient(to left, #9DDACD 0%, #009B8E 100%);
+  	margin-bottom: 50px;
 }
 
 #taula{
   display:block;
   margin:auto;
   margin-top:5px;
+  font-family: 'Roboto', verdana;
+  line-height: 19.2px;
+  font-weight: 300;
+  font-size: 16px;
+  color: #5C5C5C;
 }
+
 #taula th,td{
+	padding: 5px;
 }
 #taula th[colspan] {
-	background:#f6f8fa;
-	text-align:center;
+	background: #F5F5F5;
+	color: #5C5C5C;
+	text-align: center;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 1.2px;
+	padding: 10px;
 }
 #taula th {
 	text-align:left;
@@ -94,22 +266,74 @@ textarea#corba {
 #taula td{
 	text-align:left;
 }
-#taula input[type=number]{
-	text-align:right;
+#taula input[type=number] {
+	text-align: right;
+	width: 100%;
+	padding: 0px;
+	border: 1px solid #009B8E;
+	font-family: 'Roboto', verdana;
+	color: #5C5C5C;
+}
+
+#taula select {
+	border: 1px solid #009B8E;
+	font-family: 'Roboto', verdana;
+	color: #5C5C5C;
 }
 
 #detall_container {
   text-align:left;
   min-width:50%;
+	font-family: 'Roboto', verdana;
+	font-size: 16px;
+	line-height: 19.2px;
+}
+
+#detall_container button:first-of-type {
+	background: none;
+	border: 0px;
+	font-weight: 700;
+	color: #b53037;
+	font-size: 16px;
+}
+
+#detall ul {
+	padding-left: 0px;
+	list-style-type : none;
+	
+}
+
+#detall_container li {
+	margin: 2.5px;
+
+}
+
+#detall_container > div:first-of-type {
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 1.2px;
+	padding-top: 10px;
+}
+
+#detall_container > div:first-of-type u {
+	text-decoration: none;
+}
+
+#detall_container li::before {
+	content: "·";
+	margin-right: 5px;
+
 }
 
 #footer {
-	font-family:monospace;
+	font-family: 'Roboto', verdana;
 	padding:1em 0.5em;
 	margin-top:1em;
-	border-top:1px solid;
 	text-align:center;
-	background:linear-gradient(to bottom,#f6f8fa,white);
+	background: #FAFAFA;
+	font-size: 16px;
+	font-weight: 300;
+
 }
 #footer .item {
 	margin-bottom:0.5em;
@@ -117,4 +341,13 @@ textarea#corba {
 
 #total_iva {
 	font-size:45px;
+}
+
+::selection {
+  background: #009B8E; 
+  color: white;
+}
+::-moz-selection {
+  background: #009B8E;
+  color: white;
 }
