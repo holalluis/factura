@@ -1,0 +1,152 @@
+
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:300,400,700');
+
+body {
+	margin: 0 auto;
+	overflow-y: scroll;
+	font-size: 13px;
+	font-family: 'Roboto', verdana;
+	color: #5C5C5C;
+}
+
+h1 {
+	margin: 0 0 120px 0;
+	padding: 58px 30px;
+	font-size: 22px;
+	font-weight: 700;
+	color: white;
+	background: linear-gradient(to left, #9DDACD 0%, #009B8E 100%);		
+	text-align: center;
+	text-transform: uppercase;
+	letter-spacing: 1.2px;	
+}
+
+#root {
+	display: flex;
+	margin: 0 auto;
+	max-width: 1600px;
+}
+
+#root > * {
+	padding: 0px 15px;
+	flex: 1;
+}
+
+#input {
+	max-height: 500px;
+	font-size: 20px;
+	font-weight: 300;
+	line-height: 24px;
+	flex: 1;
+}
+
+
+#input textarea#dades {
+	font-family: 'Roboto Mono', monospace;		
+	width: 500px;
+	height: 400px;
+	display:block;
+	background-color: #F5F5F5;
+	border: 0px;
+	border-top: 25px solid #5C5C5C;
+	border-radius: 2.5px;
+	padding: 5px;
+	box-shadow: 1px 1px 5px #B6B6B6;
+	color: #5C5C5C;
+	margin-top: 25px;
+}
+
+#graph {
+	display: flex;
+	align-items: center;
+	background-color: #F5F5F5;
+	position: relative;
+	border: 0px;
+    border-radius: 2.5px;
+    padding: 0px;
+    box-shadow: 1px 1px 5px #B6B6B6;
+    color: #5C5C5C;
+    flex: 2;
+}
+
+#btn_plot {
+	border: 0px;
+	background: none;
+	cursor: pointer;
+	color: #009B8E;
+	font-size: 20px;
+	font-weight: 300;
+	line-height: 24px;
+}
+
+#btn_plot:hover {
+	color: #5C5C5C;
+}
+
+#graph * {
+	font-family: 'Roboto', verdana;
+	font-size: 13px;
+}
+
+#graph button {
+	color: white;
+	background-color: #009B8E;
+	border: 0px;
+	padding: 5px;
+	
+	cursor: pointer;
+}
+
+
+.plot-msg {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	margin: auto;
+	justify-content: center;
+	align-items: center;
+	z-index: 1;
+	font-size: 30px !important;
+	opacity: 0.3;
+	-webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#google-visualization-errors-all-1 {
+	margin: auto;
+	z-index: 5;
+}
+
+#google-visualization-errors-all-1 span {
+	background-color: #b53037 !important;
+	padding: 15px !important;
+	font-family: 'Roboto', verdana !important;
+	font-size: 13px !important;
+}
+
+
+/* CSS per adaptar la pàgina a pantalles i dispositius + petits */
+@media screen and (max-width: 1600px) {
+	#root {
+		display: block;
+		text-align: center;
+	}
+
+	#dades {
+		width: calc(90% + 15px) !important;
+		margin: 25px auto;
+		height: 200px !important;
+	}
+
+	#graph {
+		min-height: 500px !important;
+		width: 90% !important;
+		margin: 25px auto !important;
+	}
+
+}
