@@ -1,6 +1,7 @@
 <!doctype html><html><head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="styles/plot.css">
 	<title>Plot kW</title>
 	<script>
 		function drawChart() {
@@ -33,47 +34,13 @@
 				vAxis:{title: 'kW',},
 				hAxis:{title: 'Temps',},
 				min:0,
-				colors:['blue','green','red','yellow','black','pink'],
+				colors:['#009B8E'],
 				legend:"bottom",
 			};
 			var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('graph'));
 			chart.draw(data,options);
 		}
 	</script>
-	<style>
-		body {background:#f1f1f1}
-		h1 {
-			text-align:center;
-		}
-		#root {
-			display:flex;
-			flex-wrap:wrap;
-			justify-content:center;
-		}
-		#input textarea#dades {
-			font-family:monospace;
-			outline:none;
-		}
-		#input, #graph {
-			background:white;
-			padding:0.2em;
-			border:1px solid #ccc;
-			margin:1px;
-			text-align:center;
-		}
-		#graph {
-			width:50%;
-		}
-		#btn_plot {
-			padding:1em 3em;
-			margin:2px;
-			border-radius:0.5em;
-			outline:none;
-			background:#fafafa;
-			border-width:1px;
-			font-size:22px;
-		}
-	</style>
 </head><body>
 <!--titol--><h1>Plot &rarr; corba potència (kW) <small>vs</small> temps (d)</h1>
 
@@ -90,7 +57,7 @@
 	</div>
 
 	<!--grafic-->
-	<div id=graph><div style=color:#aaa>Plot apareixerà aquí</div></div>
+	<div id=graph><div class='plot-msg'>Plot apareixerà aquí</div></div>
 </div id=root>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
